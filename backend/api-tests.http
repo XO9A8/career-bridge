@@ -1,0 +1,180 @@
+# CareerBridge API Test Collection
+# Use this with the REST Client VS Code extension
+
+@baseUrl = http://localhost:8000/api
+@token = YOUR_JWT_TOKEN_HERE
+
+### Health Check
+GET {{baseUrl}}/
+
+### ============================================
+### Authentication
+### ============================================
+
+### Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePass123",
+  "full_name": "John Doe"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePass123"
+}
+
+### ============================================
+### Profile (Protected)
+### ============================================
+
+### Get Profile
+GET {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+
+### Update Profile
+POST {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "full_name": "John Michael Doe",
+  "phone": "+1234567890",
+  "location": "New York, NY",
+  "bio": "Passionate software developer with 3 years of experience",
+  "github_url": "https://github.com/johndoe",
+  "linkedin_url": "https://linkedin.com/in/johndoe",
+  "portfolio_url": "https://johndoe.dev"
+}
+
+### ============================================
+### Skills
+### ============================================
+
+### Get All Skills
+GET {{baseUrl}}/skills
+
+### Get User Skills (Protected)
+GET {{baseUrl}}/skills/me
+Authorization: Bearer {{token}}
+
+### Add User Skill (Protected)
+POST {{baseUrl}}/skills/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "skill_id": "SKILL_UUID_HERE",
+  "proficiency_level": "intermediate",
+  "years_of_experience": 2
+}
+
+### Remove User Skill (Protected)
+DELETE {{baseUrl}}/skills/me/USER_SKILL_ID_HERE
+Authorization: Bearer {{token}}
+
+### Create New Skill
+POST {{baseUrl}}/skills
+Content-Type: application/json
+
+{
+  "name": "Svelte",
+  "category": "Frontend",
+  "description": "Modern frontend framework"
+}
+
+### ============================================
+### Jobs
+### ============================================
+
+### Get All Jobs (No Filters)
+GET {{baseUrl}}/jobs
+
+### Get Jobs with Filters
+GET {{baseUrl}}/jobs?job_type=full-time&experience_level=mid&page=1&limit=10
+
+### Get Jobs by Search
+GET {{baseUrl}}/jobs?search=developer&location=remote
+
+### Get Job by ID
+GET {{baseUrl}}/jobs/JOB_UUID_HERE
+
+### Get Recommended Jobs (Protected)
+GET {{baseUrl}}/jobs/recommended
+Authorization: Bearer {{token}}
+
+### Create Job
+POST {{baseUrl}}/jobs
+Content-Type: application/json
+
+{
+  "title": "Senior Full Stack Developer",
+  "company": "TechCorp Inc",
+  "location": "Remote",
+  "job_type": "full-time",
+  "salary_range": "$100k - $150k",
+  "description": "We are looking for an experienced Full Stack Developer...",
+  "requirements": [
+    "5+ years of software development experience",
+    "Strong knowledge of React and Node.js",
+    "Experience with PostgreSQL"
+  ],
+  "responsibilities": [
+    "Design and implement new features",
+    "Collaborate with cross-functional teams",
+    "Code review and mentoring"
+  ],
+  "perks": [
+    "Remote work",
+    "Health insurance",
+    "401k matching"
+  ],
+  "experience_level": "senior",
+  "skill_ids": []
+}
+
+### ============================================
+### Learning Resources
+### ============================================
+
+### Get All Resources (No Filters)
+GET {{baseUrl}}/resources
+
+### Get Resources with Filters
+GET {{baseUrl}}/resources?difficulty_level=beginner&cost=free&page=1&limit=10
+
+### Get Resources by Type
+GET {{baseUrl}}/resources?resource_type=course
+
+### Get Resource by ID
+GET {{baseUrl}}/resources/RESOURCE_UUID_HERE
+
+### Get Recommended Resources (Protected)
+GET {{baseUrl}}/resources/recommended
+Authorization: Bearer {{token}}
+
+### Create Resource
+POST {{baseUrl}}/resources
+Content-Type: application/json
+
+{
+  "title": "Complete React Developer Course",
+  "description": "Learn React from scratch with hands-on projects",
+  "resource_type": "course",
+  "provider": "Udemy",
+  "url": "https://www.udemy.com/course/react-complete",
+  "difficulty_level": "beginner",
+  "duration_hours": 40,
+  "cost": "paid",
+  "price": "$19.99",
+  "rating": 4.7,
+  "thumbnail_url": "https://example.com/thumbnail.jpg",
+  "skill_id": null
+}
