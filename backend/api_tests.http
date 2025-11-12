@@ -1,0 +1,234 @@
+### CareerBridge API Testing
+### Save this file as api_tests.http and use with REST Client extension in VS Code
+
+@baseUrl = http://127.0.0.1:3000/api
+@token = {{login.response.body.token}}
+
+### Health Check
+GET http://127.0.0.1:3000/
+
+###
+### ============================================================================
+### AUTHENTICATION
+### ============================================================================
+
+### Register a new user
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "full_name": "Jane Smith",
+  "email": "jane.smith@example.com",
+  "password": "securepass123",
+  "education_level": "Bachelor's Degree in Computer Science",
+  "experience_level": "Junior",
+  "preferred_track": "WebDevelopment"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "jane.smith@example.com",
+  "password": "securepass123"
+}
+
+###
+### ============================================================================
+### PROFILE MANAGEMENT (Protected Routes)
+### ============================================================================
+
+### Get Profile
+GET {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+
+### Update Profile
+PUT {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "full_name": "Jane Smith",
+  "education_level": "Bachelor's in Computer Science",
+  "skills": ["JavaScript", "React", "Node.js", "TypeScript", "PostgreSQL"],
+  "projects": ["E-commerce Platform", "Task Management App", "Portfolio Website"],
+  "target_roles": ["Full Stack Developer", "Frontend Developer", "React Developer"],
+  "raw_cv_text": "Experienced junior developer with 2 years of experience in web development..."
+}
+
+###
+### ============================================================================
+### JOB RECOMMENDATIONS (Protected Routes)
+### ============================================================================
+
+### Get Job Recommendations (All)
+GET {{baseUrl}}/jobs/recommendations
+Authorization: Bearer {{token}}
+
+### Get Job Recommendations (Filtered by experience level)
+GET {{baseUrl}}/jobs/recommendations?experience_level=Junior&limit=5
+Authorization: Bearer {{token}}
+
+### Get Job Recommendations (Filtered by job type)
+GET {{baseUrl}}/jobs/recommendations?job_type=FullTime&limit=10
+Authorization: Bearer {{token}}
+
+###
+### ============================================================================
+### LEARNING RESOURCES (Protected Routes)
+### ============================================================================
+
+### Get Learning Recommendations
+GET {{baseUrl}}/learning/recommendations
+Authorization: Bearer {{token}}
+
+###
+### ============================================================================
+### SKILL GAP ANALYSIS (Protected Routes)
+### ============================================================================
+
+### Analyze Skill Gap for Target Role
+GET {{baseUrl}}/skill-gap/Full Stack Developer
+Authorization: Bearer {{token}}
+
+### Analyze Skill Gap for Frontend Developer
+GET {{baseUrl}}/skill-gap/Frontend Developer
+Authorization: Bearer {{token}}
+
+### Analyze Skill Gap for Data Analyst
+GET {{baseUrl}}/skill-gap/Data Analyst
+Authorization: Bearer {{token}}
+
+###
+### ============================================================================
+### APPLICATION TRACKING (Protected Routes)
+### ============================================================================
+
+### Create Application
+POST {{baseUrl}}/applications
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "job_id": 1,
+  "notes": "Applied via company website. Submitted resume and cover letter."
+}
+
+### Get My Applications
+GET {{baseUrl}}/applications
+Authorization: Bearer {{token}}
+
+### Update Application Status
+PUT {{baseUrl}}/applications/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "interview_scheduled",
+  "notes": "Phone interview scheduled for Monday at 10am"
+}
+
+### Update Application Status - Second Update
+PUT {{baseUrl}}/applications/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "offer_received",
+  "notes": "Received job offer! Salary: $75,000"
+}
+
+###
+### ============================================================================
+### PROGRESS TRACKING (Protected Routes)
+### ============================================================================
+
+### Start Resource
+POST {{baseUrl}}/progress/resource/1/start
+Authorization: Bearer {{token}}
+
+### Update Progress (25%)
+PUT {{baseUrl}}/progress/resource/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "completion_percentage": 25
+}
+
+### Update Progress (50%)
+PUT {{baseUrl}}/progress/resource/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "completion_percentage": 50
+}
+
+### Update Progress (100% - Completed)
+PUT {{baseUrl}}/progress/resource/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "completion_percentage": 100
+}
+
+### Get My Progress
+GET {{baseUrl}}/progress
+Authorization: Bearer {{token}}
+
+###
+### ============================================================================
+### TEST DIFFERENT USER FLOWS
+### ============================================================================
+
+### Register Second User (Data Track)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "full_name": "John Data",
+  "email": "john.data@example.com",
+  "password": "datapass123",
+  "education_level": "Master's in Data Science",
+  "experience_level": "Mid",
+  "preferred_track": "Data"
+}
+
+### Login Second User
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john.data@example.com",
+  "password": "datapass123"
+}
+
+### Register Third User (Design Track)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "full_name": "Sarah Designer",
+  "email": "sarah.design@example.com",
+  "password": "designpass123",
+  "education_level": "Bachelor's in Graphic Design",
+  "experience_level": "Fresher",
+  "preferred_track": "Design"
+}
+
+### Register Fourth User (Marketing Track)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "full_name": "Mike Marketing",
+  "email": "mike.marketing@example.com",
+  "password": "marketpass123",
+  "education_level": "Bachelor's in Marketing",
+  "experience_level": "Junior",
+  "preferred_track": "Marketing"
+}

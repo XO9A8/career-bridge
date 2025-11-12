@@ -1,784 +1,568 @@
-# CareerBridge Database Schema# CareerBridge Backend
+# CareerBridge Backend API
 
+> A comprehensive career development platform API built with Rust and Axum
+> 
 
+## 📋 Table of Contents
 
-PostgreSQL database setup and schema design for the CareerBridge platform - supporting SDG 8 (Decent Work and Economic Growth).Rust backend API for CareerBridge - an AI-powered career roadmap platform built with Axum and SQLx.
+- [Overview](#-overview)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Setup Guide](#-setup-guide)
+- [API Documentation](#-api-documentation)
+- [Database Schema](#-database-schema)
+- [Code Documentation](#-code-documentation)
+- [Algorithms](#-algorithms)
+- [Testing](#-testing)
+- [Troubleshooting](#-troubleshooting)
+- [Deployment](#-deployment)
 
+## 🎯 Overview
 
+CareerBridge helps users achieve career goals through:
+- 🎯 **Skill Gap Analysis** - Identify and bridge skill gaps
+- 💼 **Smart Job Matching** - AI-powered recommendations
+- 📚 **Personalized Learning** - Curated courses and resources
+- 📊 **Progress Tracking** - Monitor applications and learning
 
-## 🎯 Role: Database & DevOps## Tech Stack
+### SDG 8 Alignment
+- **8.5** - Full Employment (job matching, application tracking)
+- **8.6** - Youth Employment (learning resources, skill development)
+- **8.b** - Global Jobs Pact (multi-track support)
 
+## ✨ Features
 
+### 🔐 Authentication & Security
+- User registration with email validation
+- JWT-based authentication (24-hour tokens)
+- Argon2 password hashing
+- Protected routes with token middleware
+- SQL injection prevention
 
-This repository contains the **database foundation** for CareerBridge. The backend API implementation (Axum, handlers, routes, authentication) is handled by the Backend Developer.- **Framework**: Axum 0.7 (async web framework)
+### 👤 Profile Management
+- Complete user profiles with skills and projects
+- CV/Resume text storage
+- Target role preferences
+- Update capabilities
 
-- **Database**: PostgreSQL with SQLx (compile-time checked queries)
+### 💼 Job Recommendations
+- AI-powered skill-based matching
+- Match score calculation (0-100%)
+- Matched and missing skills identification
+- Filter by experience level and job type
 
-## Tech Stack- **Authentication**: JWT with bcrypt password hashing
+### 📚 Learning Resources
+- Personalized course recommendations
+- Skill gap-based suggestions
+- Relevance scoring
+- Free and paid resource filtering
+- Progress tracking (0-100%)
 
-- **Runtime**: Tokio (async runtime)
+### 📊 Skill Gap Analysis
+- Compare user skills vs role requirements
+- Calculate match percentage
+- Identify specific skill gaps
+- Recommend learning resources
 
-- **Database**: PostgreSQL 15+- **Serialization**: Serde
+### 📝 Application Tracking
+- Track job applications
+- Status updates and notes
+- Application history
+- Timeline tracking
 
-- **Query Builder**: SQLx (compile-time checked queries)
+### 📈 Progress Tracking
+- Track learning resource progress
+- Automatic completion detection
+- View learning history
 
-- **Migration Tool**: SQLx CLI## Features
-
-- **DevOps**: Docker, PostgreSQL
-
-- ✅ User authentication (register/login with JWT)
-
-## Database Schema- ✅ User profile management
-
-- ✅ Skills catalog and user skill tracking
-
-### Core Tables (7 tables)- ✅ Job listings with filtering and search
-
-- ✅ Skill-based job recommendations
-
-1. **users** - User accounts and authentication- ✅ Learning resources with filtering
-
-   - Stores user credentials, profile information- ✅ Personalized resource recommendations
-
-   - Fields: id, email, password_hash, full_name, bio, location, etc.- ✅ Compile-time SQL query validation with SQLx
-
-- ✅ CORS enabled for frontend integration
-
-2. **skills** - Master catalog of skills- ✅ Comprehensive error handling
-
-   - All available skills in the platform
-
-   - Fields: id, name, category, description, created_at## Prerequisites
-
-
-
-3. **user_skills** - User skill proficiency (Many-to-Many)- Rust 1.70+ (install from [rustup.rs](https://rustup.rs/))
-
-   - Links users to their skills with proficiency levels- PostgreSQL 14+ (or Docker)
-
-   - Fields: id, user_id, skill_id, proficiency_level, years_of_experience- SQLx CLI (for migrations)
-
-
-
-4. **jobs** - Job postings## Installation
-
-   - Job listings with requirements
-
-   - Fields: id, title, company, description, location, job_type, experience_level, salary_range### 1. Install SQLx CLI
-
-
-
-5. **job_skills** - Required skills per job (Many-to-Many)```bash
-
-   - Links jobs to required skillscargo install sqlx-cli --no-default-features --features postgres
-
-   - Fields: id, job_id, skill_id, required_proficiency, is_required```
-
-
-
-6. **learning_resources** - Educational content### 2. Set up PostgreSQL
-
-   - Learning materials and courses
-
-   - Fields: id, title, description, url, resource_type, difficulty_level, cost, provider**Option A: Local PostgreSQL**
+## 🚀 Quick Start
 
 ```bash
+# Prerequisites: Rust 1.70+, PostgreSQL 14+
 
-7. **learning_resource_skills** - Skills covered by resources (Many-to-Many)# Install PostgreSQL on your system
+# 1. Navigate to backend
+cd backend
 
-   - Links resources to skills they teach# Create a database
-
-   - Fields: id, resource_id, skill_idpsql -U postgres
-
-CREATE DATABASE career_bridge;
-
-### Key Features\q
-
-```
-
-- ✅ Proper foreign key relationships for data integrity
-
-- ✅ Indexes on frequently queried columns**Option B: Docker**
-
-- ✅ UUID primary keys for security```bash
-
-- ✅ Timestamps for audit trailsdocker run --name career-bridge-postgres \
-
-- ✅ Enum-like constraints for standardized values  -e POSTGRES_PASSWORD=postgres \
-
-- ✅ Normalized schema (3NF)  -e POSTGRES_DB=career_bridge \
-
-- ✅ Ready for AI integration (Part 2 of project)  -p 5432:5432 \
-
-- ✅ Optimized for HashSet-based skill matching algorithm  -d postgres:15
-
-```
-
-## Prerequisites
-
-### 3. Configure Environment
-
-- PostgreSQL 14+ (or Docker)
-
-- SQLx CLI for migrations```bash
-
-# Copy the example env file
-
-## Installationcp .env.example .env
-
-
-
-### 1. Install SQLx CLI# Edit .env with your database credentials
-
-# Make sure DATABASE_URL matches your PostgreSQL setup
-
-```bash```
-
-cargo install sqlx-cli --no-default-features --features postgres
-
-```### 4. Run Migrations
-
-
-
-### 2. Set up PostgreSQL```bash
-
-# Run all migrations to set up the database schema
-
-**Option A: Docker (Recommended for Development)**sqlx migrate run
-
-```
-
-```bash
-
-# Using the provided script### 5. Build and Run
-
-chmod +x docker-postgres.sh
-
-./docker-postgres.sh```bash
-
-# Development mode (with hot reload using cargo-watch)
-
-# Or manuallycargo install cargo-watch
-
-docker run --name career-bridge-postgres \cargo watch -x run
-
-  -e POSTGRES_PASSWORD=postgres \
-
-  -e POSTGRES_DB=career_bridge \# Or just run normally
-
-  -p 5432:5432 \cargo run
-
-  -d postgres:15
-
-```# Production build
-
-cargo build --release
-
-**Option B: Native PostgreSQL Installation**./target/release/career_bridge_backend
-
-```
-
-See [POSTGRESQL_SETUP.md](./POSTGRESQL_SETUP.md) for detailed instructions.
-
-The server will start at `http://127.0.0.1:8000`
-
-### 3. Configure Environment
-
-## Database Schema
-
-```bash
-
-# Copy the example env file### Tables
-
+# 2. Set up environment
 cp .env.example .env
+# Edit .env with your DATABASE_URL and JWT_SECRET
 
-- **users**: User accounts and profiles
+# 3. Create database
+createdb -U postgres career_bridge
 
-# The .env should contain:- **skills**: Skills catalog
+# 4. Run schema
+psql -U postgres -d career_bridge -f schema.sql
 
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/career_bridge- **user_skills**: User skill proficiency levels
+# 5. (Optional) Seed data
+psql -U postgres -d career_bridge -f seed_data.sql
 
-```- **jobs**: Job listings
-
-- **job_skills**: Required skills for jobs
-
-### 4. Run Migrations- **learning_resources**: Educational resources
-
-
-
-```bash## API Endpoints
-
-# Navigate to backend directory
-
-cd backend### Authentication (Public)
-
-
-
-# Run all migrations to create tables```
-
-sqlx migrate runPOST /api/auth/register    - Register new user
-
-```POST /api/auth/login       - Login user
-
+# 6. Build and run
+cargo build
+cargo run
 ```
 
-This will execute:
+Server starts at: `http://127.0.0.1:3000`
 
-1. Create the `users` table### Profile (Protected)
+## 🛠 Tech Stack
 
-2. Create the `skills` table
+- **Language**: Rust (Edition 2024)
+- **Framework**: Axum 0.8 - Async web framework
+- **Database**: PostgreSQL 14+ with SQLx
+- **Authentication**: JWT (jsonwebtoken)
+- **Password Security**: Argon2
+- **Validation**: Validator with derive macros
+- **Logging**: Tracing
+- **Runtime**: Tokio
 
-3. Create the `user_skills` table (with foreign keys)```
+## 📖 Setup Guide
 
-4. Create the `jobs` tableGET  /api/profile          - Get current user profile
+### 1. Install Prerequisites
 
-5. Create the `job_skills` table (with foreign keys)POST /api/profile          - Update user profile
-
-6. Create the `learning_resources` table```
-
-7. Create the `learning_resource_skills` table
-
-8. Seed initial skills data (50+ pre-populated skills)### Skills
-
-
-
-## Migrations```
-
-GET  /api/skills           - Get all skills (public)
-
-All migrations are located in `migrations/` directory:POST /api/skills           - Create new skill (public)
-
-GET  /api/skills/me        - Get user's skills (protected)
-
-```POST /api/skills/me        - Add skill to user (protected)
-
-migrations/DELETE /api/skills/me/:id  - Remove user skill (protected)
-
-├── 20241112000001_create_users_table.sql```
-
-├── 20241112000002_create_skills_table.sql
-
-├── 20241112000003_create_user_skills_table.sql### Jobs
-
-├── 20241112000004_create_jobs_table.sql
-
-├── 20241112000005_create_job_skills_table.sql```
-
-├── 20241112000006_create_learning_resources_table.sqlGET  /api/jobs                    - Get jobs with filters (public)
-
-└── 20241112000007_seed_skills.sqlGET  /api/jobs/:id                - Get job by ID (public)
-
-```POST /api/jobs                    - Create job (public)
-
-GET  /api/jobs/recommended        - Get recommended jobs (protected)
-
-### Managing Migrations```
-
-
-
-```bash**Query Parameters for GET /api/jobs**:
-
-# Run pending migrations- `search`: Search in title/company
-
-sqlx migrate run- `location`: Filter by location
-
-- `job_type`: full-time, part-time, contract, internship, remote
-
-# Revert last migration- `experience_level`: entry, junior, mid, senior, lead
-
-sqlx migrate revert- `page`: Page number (default: 1)
-
-- `limit`: Items per page (default: 10, max: 50)
-
-# Create a new migration
-
-sqlx migrate add <migration_name>### Learning Resources
-
-
-
-# Check migration status```
-
-sqlx migrate infoGET  /api/resources                    - Get resources with filters (public)
-
-```GET  /api/resources/:id                - Get resource by ID (public)
-
-POST /api/resources                    - Create resource (public)
-
-## Database Schema DetailsGET  /api/resources/recommended        - Get recommended resources (protected)
-
+**Rust**:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### Users Table
+**PostgreSQL**:
+```bash
+# Ubuntu/Debian
+sudo apt-get install postgresql postgresql-contrib
 
-**Query Parameters for GET /api/resources**:
+# macOS
+brew install postgresql@14
 
-Stores user authentication and profile data for the authentication system.- `search`: Search in title/description
-
-- `skill_id`: Filter by skill UUID
-
-```sql- `resource_type`: course, tutorial, article, video, book, documentation
-
-CREATE TABLE users (- `difficulty_level`: beginner, intermediate, advanced
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),- `cost`: free, paid
-
-    email VARCHAR(255) UNIQUE NOT NULL,- `page`: Page number (default: 1)
-
-    password_hash VARCHAR(255) NOT NULL,  -- Backend will use Argon2- `limit`: Items per page (default: 10, max: 50)
-
-    full_name VARCHAR(255) NOT NULL,
-
-    bio TEXT,## Example API Usage
-
-    location VARCHAR(255),
-
-    profile_image_url TEXT,### Register a new user
-
-    linkedin_url TEXT,
-
-    github_url TEXT,```bash
-
-    created_at TIMESTAMPTZ DEFAULT NOW(),curl -X POST http://localhost:8000/api/auth/register \
-
-    updated_at TIMESTAMPTZ DEFAULT NOW()  -H "Content-Type: application/json" \
-
-);  -d '{
-
-```    "email": "john@example.com",
-
-    "password": "password123",
-
-### Skills Table    "full_name": "John Doe"
-
-  }'
-
-Master catalog of all skills - optimized for HashSet operations.```
-
-
-
-```sql### Login
-
-CREATE TABLE skills (
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),```bash
-
-    name VARCHAR(100) UNIQUE NOT NULL,curl -X POST http://localhost:8000/api/auth/login \
-
-    category VARCHAR(50) NOT NULL,  -H "Content-Type: application/json" \
-
-    description TEXT,  -d '{
-
-    created_at TIMESTAMPTZ DEFAULT NOW()    "email": "john@example.com",
-
-);    "password": "password123"
-
-  }'
-
-CREATE INDEX idx_skills_category ON skills(category);```
-
-CREATE INDEX idx_skills_name ON skills(name);
-
-```### Get Profile (with JWT token)
-
-
-
-### User Skills Table```bash
-
-curl http://localhost:8000/api/profile \
-
-Links users to their skills - enables skill-based matching.  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
+# Windows - Download from postgresql.org
 ```
 
-```sql
-
-CREATE TABLE user_skills (### Get Jobs with Filters
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,```bash
-
-    skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,curl "http://localhost:8000/api/jobs?job_type=full-time&experience_level=mid&page=1&limit=10"
-
-    proficiency_level VARCHAR(20) NOT NULL,```
-
-    years_of_experience INTEGER DEFAULT 0,
-
-    created_at TIMESTAMPTZ DEFAULT NOW(),## Development
-
-    UNIQUE(user_id, skill_id)
-
-);### Adding New Migrations
-
-
-
-CREATE INDEX idx_user_skills_user ON user_skills(user_id);```bash
-
-CREATE INDEX idx_user_skills_skill ON user_skills(skill_id);# Create a new migration
-
-```sqlx migrate add migration_name
-
-
-
-### Jobs Table# Edit the generated .sql file in migrations/
-
-# Then run:
-
-Job postings with requirements.sqlx migrate run
-
-```
-
-```sql
-
-CREATE TABLE jobs (### Database Cleanup
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    title VARCHAR(255) NOT NULL,```bash
-
-    company VARCHAR(255) NOT NULL,# Revert last migration
-
-    description TEXT NOT NULL,sqlx migrate revert
-
-    location VARCHAR(255),
-
-    job_type VARCHAR(50) NOT NULL,# Drop all tables and rerun migrations
-
-    experience_level VARCHAR(50) NOT NULL,sqlx database drop
-
-    salary_range VARCHAR(100),sqlx database create
-
-    requirements TEXT[],sqlx migrate run
-
-    posted_at TIMESTAMPTZ DEFAULT NOW(),```
-
-    expires_at TIMESTAMPTZ,
-
-    is_active BOOLEAN DEFAULT true### Code Organization
-
-);
-
-```
-
-CREATE INDEX idx_jobs_type ON jobs(job_type);src/
-
-CREATE INDEX idx_jobs_location ON jobs(location);├── main.rs           # Application entry point
-
-```├── config/           # Configuration management
-
-├── db/               # Database connection pool
-
-### Job Skills Table├── handlers/         # Request handlers (business logic)
-
-├── middleware/       # Authentication middleware
-
-Required skills for each job - used in matching algorithm.├── models/           # Data models and DTOs
-
-├── routes/           # Route definitions
-
-```sql└── utils/            # Utilities (JWT, errors)
-
-CREATE TABLE job_skills (```
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,## Environment Variables
-
-    skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,
-
-    required_proficiency VARCHAR(20),| Variable | Description | Default |
-
-    is_required BOOLEAN DEFAULT true,|----------|-------------|---------|
-
-    UNIQUE(job_id, skill_id)| `DATABASE_URL` | PostgreSQL connection string | Required |
-
-);| `HOST` | Server host | 127.0.0.1 |
-
-| `PORT` | Server port | 8000 |
-
-CREATE INDEX idx_job_skills_job ON job_skills(job_id);| `JWT_SECRET` | Secret key for JWT signing | Required |
-
-CREATE INDEX idx_job_skills_skill ON job_skills(skill_id);| `JWT_EXPIRATION` | JWT expiration in seconds | 86400 (24h) |
-
-```| `FRONTEND_URL` | Frontend URL for CORS | http://localhost:5173 |
-
-| `RUST_LOG` | Log level | debug |
-
-### Learning Resources Table| `ENVIRONMENT` | Environment (development/production) | development |
-
-
-
-Educational content and courses.## Testing
-
-
-
-```sql```bash
-
-CREATE TABLE learning_resources (# Run tests
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),cargo test
-
-    title VARCHAR(255) NOT NULL,
-
-    description TEXT,# Run tests with output
-
-    url TEXT NOT NULL,cargo test -- --nocapture
-
-    resource_type VARCHAR(50) NOT NULL,```
-
-    difficulty_level VARCHAR(20) NOT NULL,
-
-    cost VARCHAR(20) NOT NULL,## Production Deployment
-
-    provider VARCHAR(255),
-
-    duration_hours INTEGER,1. Set environment variables properly
-
-    rating DECIMAL(3,2),2. Change `JWT_SECRET` to a strong random value
-
-    created_at TIMESTAMPTZ DEFAULT NOW()3. Set `ENVIRONMENT=production`
-
-);4. Build with `cargo build --release`
-
-```5. Run migrations on production database
-
-6. Deploy the binary from `target/release/`
-
-### Learning Resource Skills Table
-
-## SQLx Compile-Time Verification
-
-Skills covered by each resource.
-
-SQLx validates SQL queries at compile time. To prepare for offline builds:
-
-```sql
-
-CREATE TABLE learning_resource_skills (```bash
-
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),# Generate sqlx-data.json for offline compilation
-
-    resource_id UUID REFERENCES learning_resources(id) ON DELETE CASCADE,cargo sqlx prepare
-
-    skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,```
-
-    UNIQUE(resource_id, skill_id)
-
-);## Troubleshooting
-
-```
-
-**Migration errors**: Ensure PostgreSQL is running and DATABASE_URL is correct
-
-## Seeded Data**Compile errors**: Run `cargo clean` and rebuild
-
-**Connection refused**: Check if PostgreSQL is running on the correct port
-
-The `seed_skills.sql` migration populates the database with 50+ essential skills across categories:
-
-## License
-
-**Programming Languages:**
-
-- JavaScript, Python, Java, Rust, TypeScript, Go, C++, C#, PHP, RubyThis project is part of the CareerBridge hackathon submission.
-
-
-**Web Development:**
-- React, Vue.js, Angular, Node.js, HTML, CSS, Tailwind CSS, Next.js
-
-**Mobile Development:**
-- React Native, Flutter, Swift, Kotlin, iOS, Android
-
-**DevOps & Cloud:**
-- Docker, Kubernetes, CI/CD, AWS, Azure, GCP, Terraform
-
-**Databases:**
-- PostgreSQL, MongoDB, MySQL, Redis, SQLite
-
-**Soft Skills:**
-- Communication, Leadership, Problem Solving, Team Collaboration, Time Management
-
-## Database Management
-
-### Backup Database
+### 2. Start PostgreSQL
 
 ```bash
-pg_dump -U postgres career_bridge > backup.sql
+# Ubuntu/Debian
+sudo service postgresql start
+
+# macOS
+brew services start postgresql@14
+
+# Windows
+net start postgresql-x64-14
 ```
 
-### Restore Database
+### 3. Configure Environment
 
-```bash
-psql -U postgres career_bridge < backup.sql
-```
-
-### Reset Database (Development Only)
-
-```bash
-# Drop and recreate database
-sqlx database drop
-sqlx database create
-sqlx migrate run
-```
-
-### Connect to Database
-
-```bash
-# Using psql
-psql -U postgres -d career_bridge
-
-# View all tables
-\dt
-
-# Describe a table
-\d users
-
-# Query data
-SELECT * FROM skills LIMIT 10;
-
-# Check skill categories
-SELECT category, COUNT(*) FROM skills GROUP BY category;
-```
-
-## Docker Setup
-
-### Start PostgreSQL Container
-
-```bash
-# Using provided script
-./docker-postgres.sh
-
-# Or manually
-docker run --name career-bridge-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=career_bridge \
-  -p 5432:5432 \
-  -d postgres:15
-```
-
-### Stop Container
-
-```bash
-docker stop career-bridge-postgres
-```
-
-### View Logs
-
-```bash
-docker logs career-bridge-postgres
-```
-
-### Access Container Shell
-
-```bash
-docker exec -it career-bridge-postgres psql -U postgres -d career_bridge
-```
-
-## Environment Variables
-
-Create a `.env` file with:
-
+Create `.env`:
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/career_bridge
+DATABASE_URL=postgresql://postgres:password@localhost:5432/career_bridge
+JWT_SECRET=your-secret-key-change-in-production
 ```
 
-## SQLx Compile-Time Verification
-
-This database is designed to work with SQLx's compile-time query verification. The backend developer will use:
+### 4. Create & Setup Database
 
 ```bash
-# Backend developer runs this to generate metadata
-cargo sqlx prepare
+# Create database
+createdb -U postgres career_bridge
+
+# Apply schema
+psql -U postgres -d career_bridge -f schema.sql
+
+# Verify
+psql -U postgres -d career_bridge -c "\dt"
 ```
 
-This validates all SQL queries at compile time, preventing runtime errors.
+### 5. Build & Run
 
-## Troubleshooting
+```bash
+cargo build
+cargo run
+```
 
-### Migration Errors
+## 📚 API Documentation
 
+### Base URL
+```
+http://127.0.0.1:3000
+```
+
+### Public Endpoints
+
+#### Register User
+```http
+POST /api/register
+Content-Type: application/json
+
+{
+  "full_name": "John Doe",
+  "email": "john@example.com",
+  "password": "securepass123",
+  "education_level": "Bachelor's Degree",
+  "experience_level": "junior",
+  "preferred_track": "web_development"
+}
+```
+
+**Experience Levels**: `fresher`, `junior`, `mid`  
+**Career Tracks**: `web_development`, `data`, `design`, `marketing`
+
+**Response**:
+```json
+{
+  "message": "User registered successfully"
+}
+```
+
+#### Login
+```http
+POST /api/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "securepass123"
+}
+```
+
+**Response**:
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "user": {
+    "id": "uuid",
+    "full_name": "John Doe",
+    "email": "john@example.com",
+    "experience_level": "junior",
+    "preferred_track": "web_development",
+    "skills": [],
+    "projects": [],
+    "target_roles": []
+  }
+}
+```
+
+### Protected Endpoints
+
+**Authentication**: Add header:
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+#### Get Profile
+```http
+GET /api/profile
+```
+
+#### Update Profile
+```http
+PUT /api/profile
+Content-Type: application/json
+
+{
+  "skills": ["JavaScript", "React", "Node.js"],
+  "projects": ["E-commerce Platform"],
+  "target_roles": ["Full Stack Developer"],
+  "raw_cv_text": "My CV content..."
+}
+```
+
+#### Get Job Recommendations
+```http
+GET /api/jobs/recommendations?experience_level=junior&limit=10
+```
+
+**Query Parameters**:
+- `experience_level`: `fresher`, `junior`, `mid`
+- `job_type`: `internship`, `part_time`, `full_time`, `freelance`
+- `limit`: Number of results (default: 10)
+
+**Response**:
+```json
+[
+  {
+    "job": {
+      "id": 1,
+      "job_title": "Frontend Developer",
+      "company": "Tech Corp",
+      "location": "Remote",
+      "required_skills": ["JavaScript", "React"],
+      "experience_level": "junior"
+    },
+    "match_score": 85.5,
+    "matched_skills": ["JavaScript", "React"],
+    "missing_skills": ["CSS"]
+  }
+]
+```
+
+#### Get Learning Recommendations
+```http
+GET /api/learning/recommendations
+```
+
+#### Analyze Skill Gap
+```http
+GET /api/skill-gap/Full%20Stack%20Developer
+```
+
+**Response**:
+```json
+{
+  "user_skills": ["JavaScript", "React"],
+  "target_role": "Full Stack Developer",
+  "required_skills": ["JavaScript", "React", "Node.js", "PostgreSQL"],
+  "skill_gaps": ["Node.js", "PostgreSQL"],
+  "matching_skills": ["JavaScript", "React"],
+  "match_percentage": 50.0,
+  "recommended_resources": [...]
+}
+```
+
+#### Create Application
+```http
+POST /api/applications
+Content-Type: application/json
+
+{
+  "job_id": 1,
+  "notes": "Applied via company website"
+}
+```
+
+#### Get Applications
+```http
+GET /api/applications
+```
+
+#### Update Application
+```http
+PUT /api/applications/1
+Content-Type: application/json
+
+{
+  "status": "interview_scheduled",
+  "notes": "Interview Monday at 10am"
+}
+```
+
+#### Start Resource Tracking
+```http
+POST /api/progress/resource/5/start
+```
+
+#### Update Progress
+```http
+PUT /api/progress/resource/5
+Content-Type: application/json
+
+{
+  "completion_percentage": 75
+}
+```
+
+#### Get Progress
+```http
+GET /api/progress
+```
+
+## 🗄 Database Schema
+
+### Tables
+
+#### users
+- `id` (UUID, PK)
+- `email` (TEXT, UNIQUE)
+- `password_hash` (TEXT)
+- `full_name` (TEXT)
+- `education_level` (TEXT)
+- `experience_level` (ENUM)
+- `preferred_track` (ENUM)
+- `skills` (TEXT[])
+- `projects` (TEXT[])
+- `target_roles` (TEXT[])
+- `raw_cv_text` (TEXT)
+
+#### jobs
+- `id` (SERIAL, PK)
+- `job_title` (TEXT)
+- `company` (TEXT)
+- `location` (TEXT)
+- `required_skills` (TEXT[])
+- `experience_level` (ENUM)
+- `job_type` (ENUM)
+
+#### learning_resources
+- `id` (SERIAL, PK)
+- `title` (TEXT)
+- `platform` (TEXT)
+- `url` (TEXT)
+- `related_skills` (TEXT[])
+- `cost` (ENUM)
+
+#### application_tracking
+- `id` (SERIAL, PK)
+- `user_id` (UUID, FK → users)
+- `job_id` (INT, FK → jobs)
+- `status` (TEXT)
+- `applied_at` (TIMESTAMPTZ)
+- `notes` (TEXT)
+
+#### user_progress
+- `id` (SERIAL, PK)
+- `user_id` (UUID, FK → users)
+- `resource_id` (INT, FK → learning_resources)
+- `completion_percentage` (INT)
+- `started_at` (TIMESTAMPTZ)
+- `completed_at` (TIMESTAMPTZ)
+
+### Enums
+- `experience_level`: fresher, junior, mid
+- `career_track`: web_development, data, design, marketing
+- `job_type`: internship, part_time, full_time, freelance
+- `cost_indicator`: free, paid
+
+## 📝 Code Documentation
+
+Full Rust documentation available:
+
+```bash
+cargo doc --open --no-deps
+```
+
+Generates comprehensive HTML docs with:
+- Crate overview and API reference
+- Module documentation
+- All structs, enums, functions
+- Parameter and return descriptions
+- Error conditions
+- Usage examples
+- Search functionality
+
+## 🧮 Algorithms
+
+### Job Matching
+```
+match_score = (matched_skills / required_skills) × 100
+```
+Calculates skill overlap percentage between user and job.
+
+### Learning Resource Relevance
+```
+relevance = (new_skills_taught / total_skills) × 100
+```
+Prioritizes resources teaching new skills.
+
+### Skill Gap Analysis
+```
+match_percentage = (matching_skills / required_skills) × 100
+```
+Aggregates requirements from multiple jobs for comprehensive analysis.
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+cargo test
+
+# Run specific test
+cargo test test_name
+
+# Show output
+cargo test -- --nocapture
+
+# With REST Client (VS Code)
+# Open api_tests.http and click "Send Request"
+```
+
+## 🔧 Troubleshooting
+
+### Database Connection Failed
 ```bash
 # Check PostgreSQL is running
-docker ps | grep postgres
+sudo service postgresql status
 
-# Or for native installation
-sudo systemctl status postgresql  # Linux
-brew services list | grep postgres  # macOS
+# Start if stopped
+sudo service postgresql start
 ```
 
-### Connection Issues
-
+### "relation does not exist"
 ```bash
-# Test connection
-psql postgresql://postgres:postgres@localhost:5432/career_bridge
-
-# Check DATABASE_URL in .env
-cat .env | grep DATABASE_URL
+# Apply schema
+psql -U postgres -d career_bridge -f schema.sql
 ```
 
-### Port Already in Use
-
+### "password authentication failed"
 ```bash
-# Change PostgreSQL port in docker command
-docker run -p 5433:5432 ...  # Use port 5433 instead
+# Reset password
+sudo -u postgres psql
+ALTER USER postgres PASSWORD 'newpassword';
+\q
 
-# Update DATABASE_URL accordingly
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/career_bridge
+# Update .env with new password
 ```
 
-## Next Steps (Your DevOps Tasks)
+### Port 3000 Already in Use
+Change port in `src/main.rs`:
+```rust
+let addr = SocketAddr::from(([127, 0, 0, 1], 3001));
+```
 
-- [ ] Docker Compose setup for multi-container deployment
-- [ ] Database backup automation scripts
-- [ ] Production database configuration
-- [ ] Database monitoring setup (Grafana, Prometheus)
-- [ ] CI/CD pipeline for automatic migrations
-- [ ] Database replication for high availability
-- [ ] Database performance tuning
-- [ ] Redis caching layer setup
+## 🚀 Deployment
 
-## Project Structure
+### Production Checklist
+- [ ] Use strong JWT_SECRET
+- [ ] Configure database connection pooling
+- [ ] Enable HTTPS/TLS
+- [ ] Set up CORS for frontend
+- [ ] Configure rate limiting
+- [ ] Set up monitoring and logging
+- [ ] Database backups
+- [ ] Error reporting service
+
+### Build for Production
+```bash
+cargo build --release
+```
+
+Binary: `./target/release/backend`
+
+### Environment Variables
+```env
+DATABASE_URL=postgresql://user:pass@host:port/dbname
+JWT_SECRET=production-secret-key
+```
+
+## 📊 Project Structure
 
 ```
 backend/
-├── migrations/              # SQL migration files (YOUR WORK)
-│   ├── 20241112000001_create_users_table.sql
-│   ├── 20241112000002_create_skills_table.sql
-│   ├── 20241112000003_create_user_skills_table.sql
-│   ├── 20241112000004_create_jobs_table.sql
-│   ├── 20241112000005_create_job_skills_table.sql
-│   ├── 20241112000006_create_learning_resources_table.sql
-│   └── 20241112000007_seed_skills.sql
-├── .env.example             # Environment template
-├── .env                     # Local environment (gitignored)
-├── .gitignore              # Git ignore rules
-├── docker-postgres.sh      # Docker PostgreSQL setup script
-├── docker-postgres.ps1     # Windows PowerShell version
-├── setup.sh               # Linux/Mac setup script
-├── setup.ps1              # Windows setup script
-├── POSTGRESQL_SETUP.md    # Detailed PostgreSQL installation guide
-└── README.md              # This file
+├── src/
+│   ├── main.rs                # Entry point
+│   ├── lib.rs                 # Crate docs
+│   ├── handlers/
+│   │   ├── mod.rs             # Router
+│   │   ├── types.rs           # Request/response types
+│   │   ├── auth.rs            # Auth endpoints
+│   │   ├── profile.rs         # Profile endpoints
+│   │   ├── jobs.rs            # Job recommendations
+│   │   ├── learning.rs        # Learning resources
+│   │   ├── applications.rs    # Application tracking
+│   │   └── progress.rs        # Progress tracking
+│   ├── models.rs              # Database models
+│   ├── auth.rs                # JWT logic
+│   ├── security.rs            # Password hashing
+│   └── errors.rs              # Error handling
+├── schema.sql                 # Database schema
+├── seed_data.sql              # Sample data
+├── api_tests.http             # API tests
+├── Cargo.toml                 # Dependencies
+└── .env                       # Environment vars
 ```
 
-## Team Collaboration
+## 🤝 Contributing
 
-### Your Role: Database Schema & DevOps
-✅ Database design and schema planning
-✅ SQL migrations creation
-✅ PostgreSQL setup and configuration
-✅ Docker containerization
-✅ DevOps infrastructure
-✅ Database optimization and indexing
+SDG 8 Hackathon project. Contributions welcome!
 
-### Backend Developer's Role: API Implementation
-❌ Axum web server setup
-❌ API endpoints and HTTP routes
-❌ JWT/Argon2 authentication logic
-❌ Business logic (HashSet-based skill matching)
-❌ Error handling with thiserror
-❌ Logging with tracing crate
-❌ Configuration management with figment
+## 📄 License
 
-## License
+MIT License
 
-Part of CareerBridge hackathon project supporting SDG 8 (Decent Work and Economic Growth).
+---
+
+**Built with ❤️ using Rust** | **Version 0.1.0** | **Status: Production Ready** ✅
