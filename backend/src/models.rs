@@ -3,15 +3,29 @@
 //! This module contains all database models, enums, and data structures
 //! used throughout the application.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
+/// Custom deserializer for case-insensitive enum matching
+fn deserialize_case_insensitive<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
+{
+    let s = String::deserialize(deserializer)?;
+    s.to_lowercase()
+        .parse()
+        .map_err(serde::de::Error::custom)
+}
+
 /// Experience level of a user or required for a job.
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Serialize, sqlx::Type)]
 #[sqlx(type_name = "experience_level")]
 #[sqlx(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum ExperienceLevel {
     /// Entry-level with no prior experience
     Fresher,
@@ -21,10 +35,33 @@ pub enum ExperienceLevel {
     Mid,
 }
 
+impl std::str::FromStr for ExperienceLevel {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "fresher" => Ok(ExperienceLevel::Fresher),
+            "junior" => Ok(ExperienceLevel::Junior),
+            "mid" => Ok(ExperienceLevel::Mid),
+            _ => Err(format!("Unknown experience level: {}", s)),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ExperienceLevel {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_case_insensitive(deserializer)
+    }
+}
+
 /// Career track or specialization path.
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Serialize, sqlx::Type)]
 #[sqlx(type_name = "career_track")]
 #[sqlx(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum CareerTrack {
     /// Web development and engineering
     WebDevelopment,
@@ -36,10 +73,34 @@ pub enum CareerTrack {
     Marketing,
 }
 
+impl std::str::FromStr for CareerTrack {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().replace('-', "_").replace(' ', "_").as_str() {
+            "web_development" | "webdevelopment" => Ok(CareerTrack::WebDevelopment),
+            "data" => Ok(CareerTrack::Data),
+            "design" => Ok(CareerTrack::Design),
+            "marketing" => Ok(CareerTrack::Marketing),
+            _ => Err(format!("Unknown career track: {}", s)),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for CareerTrack {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_case_insensitive(deserializer)
+    }
+}
+
 /// Type of job or employment arrangement.
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Serialize, sqlx::Type)]
 #[sqlx(type_name = "job_type")]
 #[sqlx(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum JobType {
     /// Internship position
     Internship,
@@ -51,15 +112,60 @@ pub enum JobType {
     Freelance,
 }
 
+impl std::str::FromStr for JobType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().replace('-', "_").replace(' ', "_").as_str() {
+            "internship" => Ok(JobType::Internship),
+            "part_time" | "parttime" => Ok(JobType::PartTime),
+            "full_time" | "fulltime" => Ok(JobType::FullTime),
+            "freelance" => Ok(JobType::Freelance),
+            _ => Err(format!("Unknown job type: {}", s)),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for JobType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_case_insensitive(deserializer)
+    }
+}
+
 /// Cost indicator for learning resources.
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Serialize, sqlx::Type)]
 #[sqlx(type_name = "cost_indicator")]
 #[sqlx(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum CostIndicator {
     /// Free resource
     Free,
     /// Paid resource
     Paid,
+}
+
+impl std::str::FromStr for CostIndicator {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "free" => Ok(CostIndicator::Free),
+            "paid" => Ok(CostIndicator::Paid),
+            _ => Err(format!("Unknown cost indicator: {}", s)),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for CostIndicator {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_case_insensitive(deserializer)
+    }
 }
 
 /// User account with profile and career information.
@@ -73,12 +179,14 @@ pub struct User {
     pub email: String,
     /// Educational background
     pub education_level: Option<String>,
-    /// Current experience level
+    /// Current experience level (nullable until profile completion)
     #[sqlx(rename = "experience_level")]
-    pub experience_level: ExperienceLevel,
-    /// Preferred career track
+    pub experience_level: Option<ExperienceLevel>,
+    /// Preferred career track (nullable until profile completion)
     #[sqlx(rename = "preferred_track")]
-    pub preferred_track: CareerTrack,
+    pub preferred_track: Option<CareerTrack>,
+    /// Whether the user has completed their profile onboarding
+    pub profile_completed: bool,
     /// List of skills the user possesses
     pub skills: Vec<String>,
     /// List of projects the user has completed
@@ -106,6 +214,9 @@ pub struct Job {
     pub company: String,
     /// Job location
     pub location: String,
+    /// Detailed job description
+    #[sqlx(rename = "job_description")]
+    pub job_description: String,
     /// Skills required for the job
     #[sqlx(rename = "required_skills")]
     pub required_skills: Vec<String>,
@@ -115,6 +226,12 @@ pub struct Job {
     /// Type of employment
     #[sqlx(rename = "job_type")]
     pub job_type: JobType,
+    /// Minimum salary offered in the range (optional, in local currency)
+    #[sqlx(rename = "salary_min")]
+    pub salary_min: Option<i32>,
+    /// Maximum salary offered in the range (optional, in local currency)
+    #[sqlx(rename = "salary_max")]
+    pub salary_max: Option<i32>,
 }
 
 /// Learning resource for skill development.
@@ -205,4 +322,50 @@ pub struct SkillAssessment {
     pub proficiency_level: i32,
     /// When the assessment was performed
     pub assessed_at: DateTime<Utc>,
+}
+
+/// OAuth provider user information.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OAuthUser {
+    /// Provider's unique user ID
+    pub id: String,
+    /// User's email address
+    pub email: String,
+    /// User's full name
+    pub name: String,
+    /// User's avatar/profile picture URL
+    pub avatar_url: Option<String>,
+}
+
+/// User with OAuth fields included.
+#[derive(Debug, FromRow, Serialize, Deserialize)]
+pub struct UserWithOAuth {
+    /// Unique user identifier
+    pub id: Uuid,
+    /// User's full name
+    pub full_name: String,
+    /// User's email address
+    pub email: String,
+    /// OAuth provider (google, github, or null)
+    pub oauth_provider: Option<String>,
+    /// Provider's unique user ID
+    pub oauth_id: Option<String>,
+    /// User's avatar URL from OAuth provider
+    pub avatar_url: Option<String>,
+    /// Educational background
+    pub education_level: Option<String>,
+    /// Current experience level
+    pub experience_level: Option<ExperienceLevel>,
+    /// Preferred career track
+    pub preferred_track: Option<CareerTrack>,
+    /// Whether the user has completed their profile
+    pub profile_completed: bool,
+    /// List of skills
+    pub skills: Vec<String>,
+    /// List of projects
+    pub projects: Vec<String>,
+    /// Target job roles
+    pub target_roles: Vec<String>,
+    /// Raw CV text
+    pub raw_cv_text: Option<String>,
 }

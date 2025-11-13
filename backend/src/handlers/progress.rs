@@ -1,6 +1,7 @@
 //! Learning resource progress tracking handlers.
 
 use axum::{extract::{State, Path}, Json};
+use tracing::{info, debug};
 use crate::models::UserProgress;
 use crate::errors::AppResult;
 use crate::auth::AuthUser;
@@ -27,6 +28,9 @@ pub async fn start_resource(
     State(app_state): State<AppState>,
     Path(resource_id): Path<i32>,
 ) -> AppResult<Json<UserProgress>> {
+    info!("Starting resource tracking: user_id={}, resource_id={}", 
+          auth_user.user_id, resource_id);
+    
     let progress = sqlx::query_as!(
         UserProgress,
         r#"
@@ -41,6 +45,8 @@ pub async fn start_resource(
     .fetch_one(&app_state.db_pool)
     .await?;
 
+    info!("Resource tracking started: progress_id={}", progress.id.unwrap_or(0));
+    
     Ok(Json(progress))
 }
 
@@ -65,6 +71,9 @@ pub async fn update_resource_progress(
     Path(resource_id): Path<i32>,
     Json(payload): Json<UpdateProgressPayload>,
 ) -> AppResult<Json<serde_json::Value>> {
+    info!("Updating progress: user_id={}, resource_id={}, completion={}%",
+          auth_user.user_id, resource_id, payload.completion_percentage);
+    
     let completed_at = if payload.completion_percentage >= 100 {
         Some(chrono::Utc::now())
     } else {
@@ -85,6 +94,13 @@ pub async fn update_resource_progress(
     .execute(&app_state.db_pool)
     .await?;
 
+    if payload.completion_percentage >= 100 {
+        info!("Resource completed: user_id={}, resource_id={}", 
+              auth_user.user_id, resource_id);
+    } else {
+        debug!("Progress updated to {}%", payload.completion_percentage);
+    }
+    
     Ok(Json(serde_json::json!({
         "message": "Progress updated successfully"
     })))
@@ -103,6 +119,8 @@ pub async fn get_my_progress(
     auth_user: AuthUser,
     State(app_state): State<AppState>,
 ) -> AppResult<Json<Vec<UserProgress>>> {
+    info!("Fetching progress for user: {}", auth_user.user_id);
+    
     let progress = sqlx::query_as!(
         UserProgress,
         r#"
@@ -116,5 +134,7 @@ pub async fn get_my_progress(
     .fetch_all(&app_state.db_pool)
     .await?;
 
+    debug!("Retrieved {} progress records for user: {}", progress.len(), auth_user.user_id);
+    
     Ok(Json(progress))
 }

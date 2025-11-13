@@ -16,6 +16,7 @@ mod jobs;
 mod learning;
 mod applications;
 mod progress;
+mod oauth;
 
 #[allow(unused_imports)]
 pub use types::*;
@@ -37,14 +38,28 @@ use crate::AppState;
 /// 
 /// A configured Axum Router with all API endpoints
 pub fn create_router(app_state: AppState) -> Router {
+    use tracing::info;
+    
+    info!("Setting up API routes:");
+    info!("  ✓ Public routes: /, /api/register, /api/login");
+    info!("  ✓ OAuth routes: /api/auth/google, /api/auth/github");
+    info!("  ✓ Protected routes: profile, jobs, learning, applications, progress");
+    
     Router::new()
         // Public routes
         .route("/", get(root))
         .route("/api/register", post(auth::register))
         .route("/api/login", post(auth::login))
         
+        // OAuth routes
+        .route("/api/auth/google", get(oauth::google_login))
+        .route("/api/auth/google/callback", get(oauth::google_callback))
+        .route("/api/auth/github", get(oauth::github_login))
+        .route("/api/auth/github/callback", get(oauth::github_callback))
+        
         // Protected routes - Profile
         .route("/api/profile", get(profile::get_profile))
+        .route("/api/profile/complete", post(profile::complete_profile))
         .route("/api/profile", put(profile::update_profile))
         
         // Protected routes - Job Recommendations

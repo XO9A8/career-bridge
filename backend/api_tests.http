@@ -1,5 +1,4 @@
 ### CareerBridge API Testing
-### Save this file as api_tests.http and use with REST Client extension in VS Code
 
 @baseUrl = http://127.0.0.1:3000/api
 @token = {{login.response.body.token}}
@@ -12,18 +11,45 @@ GET http://127.0.0.1:3000/
 ### AUTHENTICATION
 ### ============================================================================
 
-### Register a new user
+### Register a new user (simplified - only name, email, password)
 POST {{baseUrl}}/register
 Content-Type: application/json
 
 {
   "full_name": "Jane Smith",
   "email": "jane.smith@example.com",
-  "password": "securepass123",
-  "education_level": "Bachelor's Degree in Computer Science",
-  "experience_level": "Junior",
-  "preferred_track": "WebDevelopment"
+  "password": "securepass123"
 }
+
+###
+### ============================================================================
+### OAUTH AUTHENTICATION (Google & GitHub)
+### ============================================================================
+
+### Initiate Google Login
+# Opens browser for Google OAuth flow
+# After authorization, user will be redirected to frontend with token
+GET {{baseUrl}}/auth/google
+
+### Initiate GitHub Login
+# Opens browser for GitHub OAuth flow
+# After authorization, user will be redirected to frontend with token
+GET {{baseUrl}}/auth/github
+
+### Note: OAuth Callbacks
+# These endpoints are automatically called by the OAuth provider
+# GET {{baseUrl}}/auth/google/callback?code=<code>
+# GET {{baseUrl}}/auth/github/callback?code=<code>
+# 
+# After successful authentication, users are redirected to:
+# http://localhost:5173/auth/callback?token=<JWT>&new_user=<true|false>
+#
+# If new_user=true, the frontend should prompt for profile completion
+
+###
+### ============================================================================
+### STANDARD AUTHENTICATION (Email & Password)
+### ============================================================================
 
 ### Login
 # @name login
@@ -40,11 +66,25 @@ Content-Type: application/json
 ### PROFILE MANAGEMENT (Protected Routes)
 ### ============================================================================
 
-### Get Profile
+### Get Profile (check if profile is completed)
 GET {{baseUrl}}/profile
 Authorization: Bearer {{token}}
 
-### Update Profile
+### Complete Profile (onboarding step after registration)
+POST {{baseUrl}}/profile/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "education_level": "Bachelor's Degree in Computer Science",
+  "experience_level": "junior",
+  "preferred_track": "web_development",
+  "skills": ["JavaScript", "React", "Node.js", "TypeScript", "PostgreSQL"],
+  "projects": ["E-commerce Platform", "Task Management App", "Portfolio Website"],
+  "target_roles": ["Full Stack Developer", "Frontend Developer", "React Developer"]
+}
+
+### Update Profile (for changes after onboarding)
 PUT {{baseUrl}}/profile
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -52,10 +92,11 @@ Content-Type: application/json
 {
   "full_name": "Jane Smith",
   "education_level": "Bachelor's in Computer Science",
-  "skills": ["JavaScript", "React", "Node.js", "TypeScript", "PostgreSQL"],
-  "projects": ["E-commerce Platform", "Task Management App", "Portfolio Website"],
-  "target_roles": ["Full Stack Developer", "Frontend Developer", "React Developer"],
-  "raw_cv_text": "Experienced junior developer with 2 years of experience in web development..."
+  "experience_level": "mid",
+  "skills": ["JavaScript", "React", "Node.js", "TypeScript", "PostgreSQL", "Docker"],
+  "projects": ["E-commerce Platform", "Task Management App", "Portfolio Website", "Microservices API"],
+  "target_roles": ["Full Stack Developer", "Senior Frontend Developer", "Tech Lead"],
+  "raw_cv_text": "Experienced developer with 3 years of experience in web development..."
 }
 
 ###
@@ -68,11 +109,11 @@ GET {{baseUrl}}/jobs/recommendations
 Authorization: Bearer {{token}}
 
 ### Get Job Recommendations (Filtered by experience level)
-GET {{baseUrl}}/jobs/recommendations?experience_level=Junior&limit=5
+GET {{baseUrl}}/jobs/recommendations?experience_level=junior&limit=5
 Authorization: Bearer {{token}}
 
 ### Get Job Recommendations (Filtered by job type)
-GET {{baseUrl}}/jobs/recommendations?job_type=FullTime&limit=10
+GET {{baseUrl}}/jobs/recommendations?job_type=full_time&limit=10
 Authorization: Bearer {{token}}
 
 ###
@@ -192,19 +233,30 @@ Content-Type: application/json
 {
   "full_name": "John Data",
   "email": "john.data@example.com",
-  "password": "datapass123",
-  "education_level": "Master's in Data Science",
-  "experience_level": "Mid",
-  "preferred_track": "Data"
+  "password": "datapass123"
 }
 
 ### Login Second User
+# @name login2
 POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
   "email": "john.data@example.com",
   "password": "datapass123"
+}
+
+### Complete Profile - Second User
+POST {{baseUrl}}/profile/complete
+Authorization: Bearer {{login2.response.body.token}}
+Content-Type: application/json
+
+{
+  "education_level": "Master's in Data Science",
+  "experience_level": "mid",
+  "preferred_track": "data",
+  "skills": ["Python", "SQL", "Pandas", "Machine Learning"],
+  "target_roles": ["Data Analyst", "Data Scientist"]
 }
 
 ### Register Third User (Design Track)
@@ -214,10 +266,7 @@ Content-Type: application/json
 {
   "full_name": "Sarah Designer",
   "email": "sarah.design@example.com",
-  "password": "designpass123",
-  "education_level": "Bachelor's in Graphic Design",
-  "experience_level": "Fresher",
-  "preferred_track": "Design"
+  "password": "designpass123"
 }
 
 ### Register Fourth User (Marketing Track)
@@ -227,8 +276,5 @@ Content-Type: application/json
 {
   "full_name": "Mike Marketing",
   "email": "mike.marketing@example.com",
-  "password": "marketpass123",
-  "education_level": "Bachelor's in Marketing",
-  "experience_level": "Junior",
-  "preferred_track": "Marketing"
+  "password": "marketpass123"
 }

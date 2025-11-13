@@ -38,7 +38,27 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        tracing::error!("Error: {:?}", self);
+        use tracing::{error, warn, debug};
+        
+        // Log appropriately based on error type
+        match &self {
+            AppError::ValidationError(_) => debug!("Validation error: {:?}", self),
+            AppError::Unauthorized => debug!("Unauthorized access attempt"),
+            AppError::NotFound => debug!("Resource not found"),
+            AppError::DatabaseError(err) => {
+                // Check if it's a user error (like duplicate key) vs system error
+                if let Some(db_err) = err.as_database_error() {
+                    if db_err.is_unique_violation() {
+                        warn!("Duplicate record attempt: {:?}", db_err.constraint());
+                    } else {
+                        error!("Database error: {:?}", self);
+                    }
+                } else {
+                    error!("Database error: {:?}", self);
+                }
+            }
+            AppError::InternalServerError => error!("Internal server error: {:?}", self),
+        }
 
         let (status, error_message) = match self {
             AppError::InternalServerError => (
@@ -54,9 +74,17 @@ impl IntoResponse for AppError {
             AppError::DatabaseError(err) => {
                 if let Some(db_err) = err.as_database_error() {
                     if db_err.is_unique_violation() {
+                        // Check which constraint was violated for better error messages
+                        let constraint = db_err.constraint().unwrap_or("");
+                        let message = if constraint.contains("email") {
+                            "An account with this email already exists. Please login or use a different email."
+                        } else {
+                            "A record with this information already exists."
+                        };
+                        
                         return (
                             StatusCode::CONFLICT,
-                            Json(json!({"error": "Email already in use."}))
+                            Json(json!({"error": message}))
                         ).into_response();
                     }
                 }

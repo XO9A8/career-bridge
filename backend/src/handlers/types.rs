@@ -8,7 +8,7 @@ use validator::Validate;
 use uuid::Uuid;
 use crate::models::*;
 
-/// User registration payload.
+/// User registration payload - simplified for initial registration.
 #[derive(Debug, Deserialize, Validate)]
 pub struct RegisterPayload {
     /// Full name of the user
@@ -20,12 +20,6 @@ pub struct RegisterPayload {
     /// Password (minimum 8 characters)
     #[validate(length(min = 8, message = "Password must be at least 8 characters long"))]
     pub password: String,
-    /// Educational background
-    pub education_level: Option<String>,
-    /// Experience level
-    pub experience_level: ExperienceLevel,
-    /// Preferred career track
-    pub preferred_track: CareerTrack,
 }
 
 /// User login payload.
@@ -57,18 +51,37 @@ pub struct UserProfile {
     pub full_name: String,
     /// Email address
     pub email: String,
+    /// Whether the user has completed their profile
+    pub profile_completed: bool,
     /// Educational background
     pub education_level: Option<String>,
     /// Experience level
-    pub experience_level: ExperienceLevel,
+    pub experience_level: Option<ExperienceLevel>,
     /// Preferred career track
-    pub preferred_track: CareerTrack,
+    pub preferred_track: Option<CareerTrack>,
     /// User's skills
     pub skills: Vec<String>,
     /// User's projects
     pub projects: Vec<String>,
     /// Target job roles
     pub target_roles: Vec<String>,
+}
+
+/// Profile completion payload for onboarding.
+#[derive(Debug, Deserialize, Validate)]
+pub struct CompleteProfilePayload {
+    /// Educational background
+    pub education_level: Option<String>,
+    /// Experience level
+    pub experience_level: ExperienceLevel,
+    /// Preferred career track
+    pub preferred_track: CareerTrack,
+    /// User's skills (optional)
+    pub skills: Option<Vec<String>>,
+    /// User's projects (optional)
+    pub projects: Option<Vec<String>>,
+    /// Target job roles (optional)
+    pub target_roles: Option<Vec<String>>,
 }
 
 /// Profile update payload (all fields optional).
@@ -78,6 +91,10 @@ pub struct UpdateProfilePayload {
     pub full_name: Option<String>,
     /// Updated education level
     pub education_level: Option<String>,
+    /// Updated experience level
+    pub experience_level: Option<ExperienceLevel>,
+    /// Updated preferred track
+    pub preferred_track: Option<CareerTrack>,
     /// Updated skills list
     pub skills: Option<Vec<String>>,
     /// Updated projects list
@@ -166,4 +183,24 @@ pub struct UpdateApplicationPayload {
 pub struct UpdateProgressPayload {
     /// Completion percentage (0-100)
     pub completion_percentage: i32,
+}
+
+/// OAuth callback query parameters.
+#[derive(Debug, Deserialize)]
+pub struct OAuthCallback {
+    /// Authorization code from OAuth provider
+    pub code: String,
+    /// CSRF protection state (optional)
+    pub state: Option<String>,
+}
+
+/// OAuth login response.
+#[derive(Debug, Serialize)]
+pub struct OAuthLoginResponse {
+    /// JWT authentication token
+    pub token: String,
+    /// User profile information
+    pub user: UserProfile,
+    /// Whether this is a newly created user
+    pub is_new_user: bool,
 }

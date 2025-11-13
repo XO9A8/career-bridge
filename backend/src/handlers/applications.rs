@@ -1,6 +1,7 @@
 //! Job application tracking handlers.
 
 use axum::{extract::{State, Path}, Json};
+use tracing::{info, debug};
 use crate::models::ApplicationTracking;
 use crate::errors::AppResult;
 use crate::auth::AuthUser;
@@ -22,6 +23,9 @@ pub async fn create_application(
     State(app_state): State<AppState>,
     Json(payload): Json<CreateApplicationPayload>,
 ) -> AppResult<Json<ApplicationTracking>> {
+    info!("Creating application for user: {}, job_id: {}", 
+          auth_user.user_id, payload.job_id);
+    
     let application = sqlx::query_as!(
         ApplicationTracking,
         r#"
@@ -36,6 +40,9 @@ pub async fn create_application(
     .fetch_one(&app_state.db_pool)
     .await?;
 
+    info!("Application created successfully: application_id={}, user_id={}, job_id={}",
+          application.id.unwrap_or(0), auth_user.user_id, payload.job_id);
+    
     Ok(Json(application))
 }
 
@@ -52,6 +59,8 @@ pub async fn get_my_applications(
     auth_user: AuthUser,
     State(app_state): State<AppState>,
 ) -> AppResult<Json<Vec<ApplicationTracking>>> {
+    info!("Fetching applications for user: {}", auth_user.user_id);
+    
     let applications = sqlx::query_as!(
         ApplicationTracking,
         r#"
@@ -65,6 +74,8 @@ pub async fn get_my_applications(
     .fetch_all(&app_state.db_pool)
     .await?;
 
+    debug!("Retrieved {} applications for user: {}", applications.len(), auth_user.user_id);
+    
     Ok(Json(applications))
 }
 
@@ -89,6 +100,9 @@ pub async fn update_application(
     Path(application_id): Path<i32>,
     Json(payload): Json<UpdateApplicationPayload>,
 ) -> AppResult<Json<serde_json::Value>> {
+    info!("Updating application: application_id={}, user_id={}, new_status={}",
+          application_id, auth_user.user_id, payload.status);
+    
     sqlx::query!(
         r#"
         UPDATE application_tracking
@@ -103,6 +117,8 @@ pub async fn update_application(
     .execute(&app_state.db_pool)
     .await?;
 
+    info!("Application updated successfully: application_id={}", application_id);
+    
     Ok(Json(serde_json::json!({
         "message": "Application updated successfully"
     })))
