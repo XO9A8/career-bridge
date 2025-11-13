@@ -82,7 +82,7 @@ export default function Home() {
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
                 <Button asChild size="lg" variant="outline" className="rounded-xl border-2 border-gray-300 dark:border-white/30 hover:border-gray-400 dark:hover:border-white/50 hover:bg-gray-50 dark:hover:bg-white/5 h-14 px-8 text-lg font-medium transition-all duration-300">
-                  <Link href="/dashboard">View Demo</Link>
+                  <Link href="/demo">View Demo</Link>
                 </Button>
               </motion.div>
             </div>

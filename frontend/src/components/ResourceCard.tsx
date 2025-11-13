@@ -48,7 +48,7 @@ export default function ResourceCard({
                 : "border border-blue-500/50 dark:border-blue-500/30 bg-blue-100/50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
             }`}
           >
-            {cost === "Free" ? "Free" : price || "Paid"}
+            {cost}
           </Badge>
         </div>
 

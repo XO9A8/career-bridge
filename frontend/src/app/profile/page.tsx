@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import Navbar from "@/components/Navbar"
 import { Button } from "@/components/ui/button"
+import { profileApi } from "@/lib/api"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 // Lazy load Footer
 const Footer = dynamic(() => import("@/components/Footer"), {
@@ -17,26 +20,63 @@ import { Badge } from "@/components/ui/badge"
 import { User, GraduationCap, Briefcase, Target, X, Plus, Save, FileText, Upload, File, Trash2 } from "lucide-react"
 
 export default function ProfilePage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    education: "bachelors",
-    experience: "fresher",
-    track: "software-dev",
+    name: "",
+    email: "",
+    education: "",
+    experience: "",
+    track: "",
   })
   
-  const [skills, setSkills] = useState([
-    "React",
-    "TypeScript",
-    "JavaScript",
-    "Tailwind CSS",
-    "Node.js",
-    "Git",
-  ])
-  
+  const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
   const [uploadedCV, setUploadedCV] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load profile data on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profile = await profileApi.getProfile()
+        
+        // Map API values to frontend values
+        const experienceMap: Record<string, string> = {
+          'fresher': 'fresher',
+          'junior': 'junior',
+          'mid': 'mid',
+        }
+
+        const trackMap: Record<string, string> = {
+          'web_development': 'software-dev',
+          'data': 'data-science',
+          'design': 'design',
+          'marketing': 'marketing',
+        }
+
+        setFormData({
+          name: profile.full_name || "",
+          email: profile.email || "",
+          education: profile.education_level || "",
+          experience: profile.experience_level ? experienceMap[profile.experience_level] || 'fresher' : 'fresher',
+          track: profile.preferred_track ? trackMap[profile.preferred_track] || 'software-dev' : 'software-dev',
+        })
+        
+        setSkills(profile.skills || [])
+      } catch (err: any) {
+        if (err.message.includes('Session expired')) {
+          router.push('/login')
+        } else {
+          toast.error('Failed to load profile')
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [router])
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -75,13 +115,54 @@ export default function ProfilePage() {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true)
-    // Simulate save
-    setTimeout(() => {
+    
+    try {
+      // Map frontend values to API values
+      const experienceLevelMap: Record<string, 'fresher' | 'junior' | 'mid'> = {
+        'fresher': 'fresher',
+        'junior': 'junior',
+        'mid': 'mid',
+        'senior': 'mid',
+      }
+
+      const trackMap: Record<string, 'web_development' | 'data' | 'design' | 'marketing'> = {
+        'software-dev': 'web_development',
+        'data-science': 'data',
+        'design': 'design',
+        'marketing': 'marketing',
+        'business': 'web_development',
+      }
+
+      const updates: any = {
+        full_name: formData.name,
+        education_level: formData.education,
+        skills: skills,
+      }
+
+      if (formData.experience) {
+        updates.experience_level = experienceLevelMap[formData.experience] || 'fresher'
+      }
+
+      // Note: preferred_track update might need to be handled separately if API doesn't support it in PUT
+      // For now, we'll skip it as it's typically set during onboarding
+
+      await profileApi.updateProfile(updates)
+      toast.success('Profile updated successfully!')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update profile. Please try again.')
+    } finally {
       setIsSaving(false)
-      alert("Profile updated successfully!")
-    }, 1000)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading profile...</div>
+      </div>
+    )
   }
 
   return (

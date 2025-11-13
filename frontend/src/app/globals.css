@@ -147,6 +147,11 @@
     box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
   }
   
+  /* Demo page layout stability */
+  .demo-page-main-content {
+    padding-top: 120px; /* Navbar (64px) + Banner (56px) */
+  }
+  
   .glow-purple {
     box-shadow: 0 0 20px rgba(192, 132, 252, 0.3);
   }

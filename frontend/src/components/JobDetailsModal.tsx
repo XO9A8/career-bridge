@@ -120,30 +120,34 @@ export default function JobDetailsModal({ open, onClose, job }: JobDetailsModalP
             </div>
 
             {/* Responsibilities */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">Responsibilities</h3>
-              <ul className="space-y-2">
-                {job.responsibilities.map((item, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                    <span className="text-blue-400 mt-1">•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {job.responsibilities && job.responsibilities.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Responsibilities</h3>
+                <ul className="space-y-2">
+                  {job.responsibilities.map((item, index) => (
+                    <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                      <span className="text-blue-400 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Requirements */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">Requirements</h3>
-              <ul className="space-y-2">
-                {job.requirements.map((item, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                    <span className="text-purple-400 mt-1">•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {job.requirements && job.requirements.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Requirements</h3>
+                <ul className="space-y-2">
+                  {job.requirements.map((item, index) => (
+                    <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                      <span className="text-purple-400 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Benefits */}
             {job.benefits && job.benefits.length > 0 && (

@@ -25,6 +25,7 @@ use axum::{
     routing::{get, post, put},
     Router,
 };
+use tower_http::cors::{CorsLayer, Any};
 use crate::errors::AppResult;
 use crate::AppState;
 
@@ -81,6 +82,14 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/progress/resource/{id}", put(progress::update_resource_progress))
         .route("/api/progress", get(progress::get_my_progress))
         
+        // Add CORS middleware
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any)
+                .allow_credentials(false)
+        )
         .with_state(app_state)
 }
 

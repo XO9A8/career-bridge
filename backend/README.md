@@ -167,7 +167,16 @@ Create `.env`:
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/database_db
 JWT_SECRET=your-secret-key-change-in-production
+FRONTEND_URL=http://localhost:3001
+GOOGLE_REDIRECT_URI=http://127.0.0.1:3000/api/auth/google/callback
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_REDIRECT_URI=http://127.0.0.1:3000/api/auth/github/callback
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
 ```
+
+> **Note:** The `FRONTEND_URL` should point to where your frontend is running (default: `http://localhost:3001`). The OAuth redirect URIs should point to the backend API endpoints (port 3000).
 
 ### 4. Create & Setup Database
 
@@ -214,7 +223,7 @@ Redirects to GitHub OAuth, then back to frontend with JWT token.
 
 After OAuth authentication, users are redirected to:
 ```
-http://localhost:5173/auth/callback?token=<JWT>&new_user=<true|false>
+http://localhost:3001/auth/callback?token=<JWT>&new_user=<true|false>
 ```
 
 #### Register User (Traditional Method)

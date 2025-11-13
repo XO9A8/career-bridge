@@ -121,7 +121,7 @@ pub async fn google_callback(
             AppError::InternalServerError
         })?;
     let frontend_url = std::env::var("FRONTEND_URL")
-        .unwrap_or_else(|_| "http://localhost:5173".to_string());
+        .unwrap_or_else(|_| "http://localhost:3001".to_string());
     
     debug!("Frontend URL: {}", frontend_url);
 
@@ -262,7 +262,7 @@ pub async fn github_callback(
             AppError::InternalServerError
         })?;
     let frontend_url = std::env::var("FRONTEND_URL")
-        .unwrap_or_else(|_| "http://localhost:5173".to_string());
+        .unwrap_or_else(|_| "http://localhost:3001".to_string());
     
     debug!("Frontend URL: {}", frontend_url);
 

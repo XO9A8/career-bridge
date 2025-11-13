@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import { ClientComponents } from "@/components/ClientComponents";
+import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
 
 // Optimize font loading with next/font
@@ -56,6 +57,7 @@ export default function RootLayout({
       <body className={`antialiased ${inter.variable} ${poppins.variable}`}>
         <ThemeProvider>
           <ClientComponents />
+          <Toaster />
           <Script
             src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
             strategy="lazyOnload"

@@ -28,7 +28,7 @@ export default function JobCard({
 }: JobCardProps) {
   return (
     <motion.div
-      className="rounded-xl p-6 border border-blue-200/50 dark:border-blue-500/30 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md h-full flex flex-col"
+      className="rounded-xl p-6 border border-blue-200/50 dark:border-blue-500/30 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 group shadow-sm hover:shadow-md h-full flex flex-col"
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >

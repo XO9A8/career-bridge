@@ -42,7 +42,7 @@ GET {{baseUrl}}/auth/github
 # GET {{baseUrl}}/auth/github/callback?code=<code>
 # 
 # After successful authentication, users are redirected to:
-# http://localhost:5173/auth/callback?token=<JWT>&new_user=<true|false>
+# http://localhost:3001/auth/callback?token=<JWT>&new_user=<true|false>
 #
 # If new_user=true, the frontend should prompt for profile completion
 

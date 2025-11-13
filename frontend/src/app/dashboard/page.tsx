@@ -1,11 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Navbar from "@/components/Navbar"
 import JobCard from "@/components/JobCard"
 import ResourceCard from "@/components/ResourceCard"
 import { GraduationCap, Briefcase, Target, TrendingUp } from "lucide-react"
+import { profileApi, jobsApi, learningApi } from "@/lib/api"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { generateResponsibilities, generateRequirements, generateBenefits } from "@/lib/jobUtils"
 
 // Lazy load heavy components
 const JobDetailsModal = dynamic(() => import("@/components/JobDetailsModal"), {
@@ -15,102 +19,101 @@ const Footer = dynamic(() => import("@/components/Footer"), {
   loading: () => <div className="h-32" />,
 });
 
-const mockUser = {
-  name: "Alex Johnson",
-  education: "Bachelor's in Computer Science",
-  track: "Software Development",
-  experience: "Fresher (0-1 years)",
-}
-
-const mockJobs = [
-  {
-    id: "1",
-    title: "Frontend Developer",
-    company: "TechCorp",
-    location: "Remote",
-    type: "Full-time",
-    skills: ["React", "TypeScript", "Tailwind CSS"],
-    postedDate: "2 days ago",
-    salary: "$60k - $80k",
-    experience: "0-2 years",
-    description: "Join our team as a Frontend Developer and help build amazing user experiences.",
-    responsibilities: [
-      "Develop responsive web applications using React and TypeScript",
-      "Collaborate with designers to implement UI/UX designs",
-      "Optimize application performance and user experience",
-    ],
-    requirements: [
-      "Strong knowledge of React and modern JavaScript",
-      "Experience with TypeScript and CSS frameworks",
-      "Understanding of web performance optimization",
-    ],
-    benefits: ["Health insurance", "Remote work", "Learning budget"],
-  },
-  {
-    id: "2",
-    title: "Junior Full Stack Developer",
-    company: "StartupHub",
-    location: "New York, NY",
-    type: "Full-time",
-    skills: ["Node.js", "React", "MongoDB", "Express"],
-    postedDate: "1 week ago",
-    salary: "$55k - $75k",
-    experience: "0-2 years",
-    description: "Looking for a passionate full stack developer to join our growing team.",
-    responsibilities: [
-      "Build and maintain web applications",
-      "Work with RESTful APIs and databases",
-      "Participate in code reviews and team discussions",
-    ],
-    requirements: [
-      "Knowledge of JavaScript and Node.js",
-      "Familiarity with React or similar frameworks",
-      "Basic understanding of databases",
-    ],
-  },
-]
-
-const mockResources = [
-  {
-    id: "1",
-    title: "Complete React Developer Course",
-    platform: "Udemy",
-    cost: "Paid" as const,
-    price: "$49",
-    skills: ["React", "JavaScript", "Web Development"],
-    url: "https://www.udemy.com",
-    description: "Master React from basics to advanced concepts",
-  },
-  {
-    id: "2",
-    title: "JavaScript ES6+ Guide",
-    platform: "freeCodeCamp",
-    cost: "Free" as const,
-    skills: ["JavaScript", "ES6", "Programming"],
-    url: "https://www.freecodecamp.org",
-    description: "Learn modern JavaScript features and best practices",
-  },
-  {
-    id: "3",
-    title: "TypeScript for Beginners",
-    platform: "YouTube",
-    cost: "Free" as const,
-    skills: ["TypeScript", "JavaScript"],
-    url: "https://www.youtube.com",
-    description: "Complete TypeScript tutorial for beginners",
-  },
-]
-
 export default function DashboardPage() {
-  const [selectedJob, setSelectedJob] = useState<typeof mockJobs[0] | null>(null)
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [jobs, setJobs] = useState<any[]>([])
+  const [resources, setResources] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedJob, setSelectedJob] = useState<any | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load profile and recommendations in parallel
+        const [profileData, jobsData, resourcesData] = await Promise.all([
+          profileApi.getProfile(),
+          jobsApi.getRecommendations({ limit: 5 }),
+          learningApi.getRecommendations(),
+        ])
+
+        setUser({
+          name: profileData.full_name,
+          education: profileData.education_level || "Not specified",
+          track: profileData.preferred_track || "Not specified",
+          experience: profileData.experience_level || "Not specified",
+        })
+
+        // Transform jobs data to match JobCard component
+        const transformedJobs = jobsData.map((item: any) => {
+          const skills = item.job.required_skills || []
+          const experienceLevel = item.job.experience_level || "junior"
+          
+          return {
+            id: item.job.id.toString(),
+            title: item.job.job_title,
+            company: item.job.company,
+            location: item.job.location,
+            type: item.job.job_type,
+            skills: skills,
+            postedDate: "Recently",
+            salary: item.job.salary_min && item.job.salary_max 
+              ? `$${item.job.salary_min}k - $${item.job.salary_max}k`
+              : "Not specified",
+            experience: experienceLevel,
+            description: item.job.job_description || "",
+            responsibilities: generateResponsibilities(item.job.job_title, skills, experienceLevel),
+            requirements: generateRequirements(item.job.job_title, skills, experienceLevel),
+            benefits: generateBenefits(item.job.job_type, item.job.location),
+            matchScore: item.match_score,
+            matchedSkills: item.matched_skills || [],
+            missingSkills: item.missing_skills || [],
+          }
+        })
+
+        // Transform resources data to match ResourceCard component
+        const transformedResources = resourcesData.slice(0, 3).map((item: any) => ({
+          id: item.resource.id.toString(),
+          title: item.resource.title,
+          platform: item.resource.platform,
+          cost: item.resource.cost === 'free' ? 'Free' as const : 'Paid' as const,
+          price: item.resource.cost === 'paid' ? "Check platform" : undefined,
+          skills: item.resource.related_skills || [],
+          url: item.resource.url,
+          description: `Relevance: ${item.relevance_score}% - ${item.new_skills?.join(', ') || 'No new skills'}`,
+        }))
+
+        setJobs(transformedJobs)
+        setResources(transformedResources)
+      } catch (err: any) {
+        if (err.message.includes('Session expired')) {
+          router.push('/login')
+        } else {
+          toast.error('Failed to load dashboard data')
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
+  }, [router])
+
   const handleViewJobDetails = (jobId: string) => {
-    const job = mockJobs.find(j => j.id === jobId)
+    const job = jobs.find(j => j.id === jobId)
     if (job) {
       setSelectedJob(job)
       setModalOpen(true)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading dashboard...</div>
+      </div>
+    )
   }
 
   return (
@@ -124,7 +127,7 @@ export default function DashboardPage() {
             <div className="space-y-4 flex-1">
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-2">
-                  Welcome back, <span className="text-gradient">{mockUser.name}</span>!
+                  Welcome back, <span className="text-gradient">{user?.name || 'User'}</span>!
                 </h1>
                 <p className="text-muted-foreground">Here's your career dashboard overview</p>
               </div>
@@ -136,7 +139,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Education</p>
-                    <p className="text-sm font-medium text-foreground">{mockUser.education}</p>
+                    <p className="text-sm font-medium text-foreground">{user?.education || 'Not specified'}</p>
                   </div>
                 </div>
                 
@@ -146,7 +149,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Career Track</p>
-                    <p className="text-sm font-medium text-foreground">{mockUser.track}</p>
+                    <p className="text-sm font-medium text-foreground">{user?.track || 'Not specified'}</p>
                   </div>
                 </div>
                 
@@ -156,7 +159,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Experience</p>
-                    <p className="text-sm font-medium text-foreground">{mockUser.experience}</p>
+                    <p className="text-sm font-medium text-foreground">{user?.experience || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -187,15 +190,23 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mockJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                {...job}
-                onViewDetails={handleViewJobDetails}
-              />
-            ))}
-          </div>
+          {jobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {jobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  {...job}
+                  onViewDetails={handleViewJobDetails}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="glass-effect rounded-xl p-12 text-center border border-white/10">
+              <p className="text-muted-foreground text-lg">
+                No job recommendations available. Complete your profile to get personalized recommendations.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Learning Resources Section */}
@@ -209,11 +220,19 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockResources.map((resource) => (
-              <ResourceCard key={resource.id} {...resource} />
-            ))}
-          </div>
+          {resources.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {resources.map((resource) => (
+                <ResourceCard key={resource.id} {...resource} />
+              ))}
+            </div>
+          ) : (
+            <div className="glass-effect rounded-xl p-12 text-center border border-white/10">
+              <p className="text-muted-foreground text-lg">
+                No learning resources available. Complete your profile to get personalized recommendations.
+              </p>
+            </div>
+          )}
         </section>
       </main>
 

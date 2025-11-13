@@ -41,7 +41,9 @@ npm install
 npm run dev
 ```
 
-Navigate to `http://localhost:3000` to explore the application.
+Navigate to `http://localhost:3001` to explore the application.
+
+> **Note:** The frontend runs on port 3001, while the backend API runs on port 3000. Make sure both servers are running for the application to work properly.
 
 ## Project Structure
 
