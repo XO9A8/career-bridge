@@ -91,11 +91,20 @@ railway run --service postgres psql $DATABASE_URL -f seed_data.sql
 #### Option B: Using Railway Dashboard Database Client
 
 1. Go to your PostgreSQL service in Railway dashboard
-2. Click on the "Data" tab
-3. Click "Query" to open the SQL editor
-4. Copy and paste the contents of `schema.sql`
-5. Execute the query
-6. (Optional) Repeat with `seed_data.sql` for test data
+2. Look for one of these options:
+   - Click on the **"Data"** tab, then look for **"Query"**, **"SQL Editor"**, or **"Console"** button
+   - Or click **"Connect"** → **"Query"** or **"SQL Shell"**
+   - Or find **"PostgreSQL"** section and click **"Open Database"** or similar
+3. In the SQL editor/console, copy and paste the contents of `schema.sql`
+4. Execute the query (look for "Run", "Execute", or play button)
+5. (Optional) Repeat with `seed_data.sql` for test data
+
+**Alternative:** If you can't find the query interface:
+1. Click on your Postgres service
+2. Go to **"Settings"** or **"Connect"** tab
+3. Copy the **DATABASE_URL** connection string
+4. Use a database client like [pgAdmin](https://www.pgadmin.org/), [DBeaver](https://dbeaver.io/), or [TablePlus](https://tableplus.com/)
+5. Connect using the DATABASE_URL and run the SQL files there
 
 #### Option C: Using Local psql Client
 
