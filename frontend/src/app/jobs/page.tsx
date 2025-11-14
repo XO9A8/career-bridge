@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar"
 import JobCard from "@/components/JobCard"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { jobsApi } from "@/lib/api"
 import { useRouter } from "next/navigation"
@@ -29,6 +29,8 @@ export default function JobsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedJob, setSelectedJob] = useState<any | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   useEffect(() => {
     const loadJobs = async () => {
@@ -115,6 +117,17 @@ export default function JobsPage() {
     return matchesSearch && matchesLocation && matchesType
   })
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedJobs = filteredJobs.slice(startIndex, endIndex)
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, locationFilter, typeFilter, itemsPerPage])
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -186,23 +199,95 @@ export default function JobsPage() {
             </div>
           </div>
 
-          {/* Results count */}
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing <span className="text-foreground font-medium">{filteredJobs.length}</span> results
+          {/* Results count and items per page */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="text-foreground font-medium">{startIndex + 1}-{Math.min(endIndex, filteredJobs.length)}</span> of <span className="text-foreground font-medium">{filteredJobs.length}</span> results
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Jobs per page:</span>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px] h-9 glass-effect border-gray-300 dark:border-white/10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="glass-effect border-white/10">
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {/* Jobs Grid */}
         {filteredJobs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                {...job}
-                onViewDetails={handleViewJobDetails}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  {...job}
+                  onViewDetails={handleViewJobDetails}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="glass-effect border-gray-300 dark:border-white/10 hover:bg-blue-500/10 disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="icon"
+                          onClick={() => setCurrentPage(page)}
+                          className={currentPage === page 
+                            ? "bg-blue-500 hover:bg-blue-600 text-white" 
+                            : "glass-effect border-gray-300 dark:border-white/10 hover:bg-blue-500/10"
+                          }
+                        >
+                          {page}
+                        </Button>
+                      )
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="text-muted-foreground">...</span>
+                    }
+                    return null
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="glass-effect border-gray-300 dark:border-white/10 hover:bg-blue-500/10 disabled:opacity-50"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="glass-effect rounded-xl p-12 text-center border border-white/10">
             <p className="text-muted-foreground text-lg">

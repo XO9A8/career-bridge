@@ -5,7 +5,8 @@ import dynamic from "next/dynamic"
 import Navbar from "@/components/Navbar"
 import ResourceCard from "@/components/ResourceCard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter, BookOpen } from "lucide-react"
+import { Filter, BookOpen, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { learningApi } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -21,6 +22,8 @@ export default function ResourcesPage() {
   const [skillFilter, setSkillFilter] = useState("all")
   const [allResources, setAllResources] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   useEffect(() => {
     const loadResources = async () => {
@@ -67,6 +70,17 @@ export default function ResourcesPage() {
     
     return matchesCost && matchesSkill
   })
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredResources.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedResources = filteredResources.slice(startIndex, endIndex)
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [costFilter, skillFilter, itemsPerPage])
 
   if (isLoading) {
     return (
@@ -129,19 +143,91 @@ export default function ResourcesPage() {
             </div>
           </div>
 
-          {/* Results count */}
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing <span className="text-foreground font-medium">{filteredResources.length}</span> resources
+          {/* Results count and items per page */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="text-foreground font-medium">{startIndex + 1}-{Math.min(endIndex, filteredResources.length)}</span> of <span className="text-foreground font-medium">{filteredResources.length}</span> resources
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Resources per page:</span>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px] h-9 glass-effect border-gray-300 dark:border-white/10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="glass-effect border-white/10">
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {/* Resources Grid */}
         {filteredResources.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredResources.map((resource) => (
-              <ResourceCard key={resource.id} {...resource} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedResources.map((resource) => (
+                <ResourceCard key={resource.id} {...resource} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="glass-effect border-gray-300 dark:border-white/10 hover:bg-purple-500/10 disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="icon"
+                          onClick={() => setCurrentPage(page)}
+                          className={currentPage === page 
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "glass-effect border-gray-300 dark:border-white/10 hover:bg-purple-500/10"
+                          }
+                        >
+                          {page}
+                        </Button>
+                      )
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="text-muted-foreground">...</span>
+                    }
+                    return null
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="glass-effect border-gray-300 dark:border-white/10 hover:bg-purple-500/10 disabled:opacity-50"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="glass-effect rounded-xl p-12 text-center border border-white/10">
             <p className="text-muted-foreground text-lg">
