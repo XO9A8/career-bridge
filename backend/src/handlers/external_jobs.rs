@@ -28,14 +28,161 @@ pub struct ExternalJob {
     pub salary: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct ReliefWebResponse {
+    data: Vec<ReliefWebJob>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebJob {
+    id: String,
+    fields: ReliefWebFields,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebFields {
+    title: String,
+    #[serde(default)]
+    body: Option<String>,
+    #[serde(default)]
+    url_alias: String,  // This is the correct field for the public job posting URL
+    #[serde(default)]
+    source: Vec<ReliefWebSource>,
+    #[serde(default)]
+    country: Vec<ReliefWebCountry>,
+    #[serde(default)]
+    date: ReliefWebDate,
+    #[serde(default)]
+    experience: Vec<ReliefWebExperience>,
+    #[serde(default)]
+    career_categories: Vec<ReliefWebCareer>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebSource {
+    #[serde(default)]
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebCountry {
+    #[serde(default)]
+    name: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ReliefWebDate {
+    #[serde(default)]
+    created: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebExperience {
+    #[serde(default)]
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReliefWebCareer {
+    #[serde(default)]
+    name: String,
+}
+
 /// Fetches NGO and UN jobs from ReliefWeb API for Bangladesh
 async fn fetch_reliefweb_jobs() -> Result<Vec<ExternalJob>, Box<dyn std::error::Error>> {
-    // Note: ReliefWeb API requires an approved appname
-    // For now, we'll use sample data. To get real data, register at:
-    // https://apidoc.reliefweb.int/parameters#appname
-    
-    // Fallback to sample NGO jobs for Bangladesh
-    Ok(get_sample_ngo_jobs())
+    // Using ReliefWeb API with proper fields including url_alias for correct job URLs
+    let url = "https://api.reliefweb.int/v1/jobs?appname=careerbridge&profile=list&preset=latest&limit=20&query[value]=country.id:13&query[operator]=AND&fields[include][]=title&fields[include][]=body&fields[include][]=url_alias&fields[include][]=source&fields[include][]=country&fields[include][]=date&fields[include][]=experience&fields[include][]=career_categories";
+
+    let client = reqwest::Client::new();
+    let response = client
+        .get(url)
+        .header("User-Agent", "CareerBridge/1.0")
+        .send()
+        .await;
+
+    // If API fails (like appname not approved), fall back to sample data
+    let response = match response {
+        Ok(resp) if resp.status().is_success() => resp,
+        Ok(resp) => {
+            warn!("ReliefWeb API returned status: {}. Using sample data.", resp.status());
+            return Ok(get_sample_ngo_jobs());
+        }
+        Err(e) => {
+            warn!("ReliefWeb API request failed: {}. Using sample data.", e);
+            return Ok(get_sample_ngo_jobs());
+        }
+    };
+
+    let data: ReliefWebResponse = match response.json().await {
+        Ok(d) => d,
+        Err(e) => {
+            error!("Failed to parse ReliefWeb API response: {}. Using sample data.", e);
+            return Ok(get_sample_ngo_jobs());
+        }
+    };
+
+    let jobs: Vec<ExternalJob> = data
+        .data
+        .into_iter()
+        .map(|job| {
+            let location = job
+                .fields
+                .country
+                .first()
+                .map(|c| c.name.clone())
+                .unwrap_or_else(|| "Bangladesh".to_string());
+
+            let company = job
+                .fields
+                .source
+                .first()
+                .map(|s| s.name.clone())
+                .unwrap_or_else(|| "NGO/UN".to_string());
+
+            let experience = job
+                .fields
+                .experience
+                .first()
+                .map(|e| e.name.clone())
+                .unwrap_or_default();
+
+            let skills: Vec<String> = job
+                .fields
+                .career_categories
+                .iter()
+                .map(|c| c.name.clone())
+                .collect();
+
+            // Use url_alias for the correct public job posting URL
+            let job_url = if !job.fields.url_alias.is_empty() {
+                format!("https://reliefweb.int{}", job.fields.url_alias)
+            } else {
+                "https://reliefweb.int/jobs".to_string()
+            };
+
+            ExternalJob {
+                id: format!("reliefweb_{}", job.id),
+                title: job.fields.title,
+                company,
+                location,
+                description: job.fields.body.unwrap_or_default(),
+                url: job_url,  // Using the correct url_alias field
+                posted_date: job.fields.date.created,
+                source: "ReliefWeb".to_string(),
+                job_type: Some("Full-time".to_string()),
+                experience_level: if experience.is_empty() {
+                    None
+                } else {
+                    Some(experience)
+                },
+                skills,
+                salary: None,
+            }
+        })
+        .collect();
+
+    info!("Successfully fetched {} jobs from ReliefWeb API", jobs.len());
+    Ok(jobs)
 }
 
 /// Sample NGO/UN jobs for Bangladesh (ReliefWeb-style data)
