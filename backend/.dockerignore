@@ -1,0 +1,9 @@
+target/
+.env
+.env.*
+.git/
+.gitignore
+*.md
+api_tests.http
+seed_data.sql
+README.md
