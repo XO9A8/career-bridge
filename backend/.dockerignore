@@ -7,3 +7,6 @@ target/
 api_tests.http
 seed_data.sql
 README.md
+
+# Explicitly include .sqlx directory
+!.sqlx/

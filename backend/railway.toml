@@ -1,8 +1,9 @@
 [build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+builder = "DOCKERFILE"
+dockerfilePath = "./Dockerfile"
+buildArgs = ["DATABASE_URL=${{DATABASE_URL}}"]
 
 [deploy]
-startCommand = "/app/backend"
-restartPolicyType = "on_failure"
+startCommand = "./backend"
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
