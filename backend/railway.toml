@@ -1,5 +1,5 @@
 [build]
-builder = "HEROKU_BUILDPACKS"
+builder = "RAILPACK"
 
 [deploy]
 startCommand = "./target/release/backend"
