@@ -1,4 +1,5 @@
 [build]
+builder = "HEROKU_BUILDPACKS"
 
 [deploy]
 startCommand = "./target/release/backend"

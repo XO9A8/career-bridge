@@ -1,8 +1,0 @@
-[phases.setup]
-aptPkgs = ["pkg-config", "libssl-dev"]
-
-[phases.build]
-cmds = ["cargo build --release"]
-
-[start]
-cmd = "./target/release/backend"
