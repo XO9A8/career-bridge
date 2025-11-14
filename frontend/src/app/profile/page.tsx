@@ -9,6 +9,7 @@ import { profileApi } from "@/lib/api"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { CVUpload } from "@/components/CVUpload"
+import { ProfileAssistant } from "@/components/ProfileAssistant"
 
 // Lazy load Footer
 const Footer = dynamic(() => import("@/components/Footer"), {
@@ -280,6 +281,18 @@ export default function ProfilePage() {
                   toast.success('CV uploaded successfully!')
                 }}
               />
+            </motion.div>
+
+            {/* AI Profile Assistant */}
+            <motion.div
+              className="rounded-xl p-6 border border-gray-200 dark:border-white/20 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-800/30 shadow-sm dark:shadow-md"
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <h2 className="text-xl font-semibold text-foreground mb-6">
+                AI Profile Assistant
+              </h2>
+              <ProfileAssistant />
             </motion.div>
           </div>
 

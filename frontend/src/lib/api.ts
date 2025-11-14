@@ -487,6 +487,174 @@ export const progressApi = {
   },
 };
 
+// AI APIs
+export const aiApi = {
+  // Extract skills from CV text
+  extractSkills: async (cvText: string, provider: 'gemini' | 'groq' = 'gemini', updateProfile: boolean = true): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/extract-skills`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        cv_text: cvText,
+        provider,
+        update_profile: updateProfile
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract skills');
+    }
+
+    return await response.json();
+  },
+
+  // Generate career roadmap
+  generateRoadmap: async (techStack: string, includeCurrentSkills: boolean = true, provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/roadmap`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        tech_stack: techStack,
+        include_current_skills: includeCurrentSkills,
+        provider
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate roadmap');
+    }
+
+    return await response.json();
+  },
+
+  // Get all saved roadmaps
+  getRoadmaps: async (): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/roadmaps`, {
+      headers: getHeaders(token),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch roadmaps');
+    }
+
+    return await response.json();
+  },
+
+  // Get specific roadmap by ID
+  getRoadmapById: async (id: number): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/roadmaps/${id}`, {
+      headers: getHeaders(token),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch roadmap');
+    }
+
+    return await response.json();
+  },
+
+  // Delete roadmap
+  deleteRoadmap: async (id: number): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/roadmaps/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(token),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete roadmap');
+    }
+
+    return await response.json();
+  },
+
+  // Ask career mentor a question
+  askMentor: async (question: string, provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/ask-mentor`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        question,
+        provider
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get answer');
+    }
+
+    return await response.json();
+  },
+
+  // Generate professional summary
+  generateSummary: async (provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/generate-summary`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({ provider }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate summary');
+    }
+
+    return await response.json();
+  },
+
+  // Improve project descriptions
+  improveProjects: async (projects: string[], provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/improve-projects`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        projects,
+        provider
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to improve projects');
+    }
+
+    return await response.json();
+  },
+
+  // Get profile improvement suggestions
+  getProfileSuggestions: async (platform: string = 'linkedin', provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/profile-suggestions`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        platform,
+        provider
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get suggestions');
+    }
+
+    return await response.json();
+  },
+};
+
 // Utility function to check if user is authenticated
 export const isAuthenticated = (): boolean => {
   return !!getToken();

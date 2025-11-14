@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Upload, FileText, CheckCircle, XCircle } from 'lucide-react'
-import { profileApi } from '@/lib/api'
+import { profileApi, aiApi } from '@/lib/api'
 
 interface CVUploadProps {
   onUploadSuccess?: () => void
@@ -51,10 +51,38 @@ export function CVUpload({ onUploadSuccess }: CVUploadProps) {
     try {
       const result = await profileApi.uploadCV(file)
       
-      setMessage({ 
-        type: 'success', 
-        text: `CV uploaded successfully! Extracted ${result.extracted_length} characters.` 
-      })
+      // Extract skills automatically if CV text was extracted
+      try {
+        // Get the profile to access raw_cv_text
+        const profile = await profileApi.getProfile()
+        if (profile.raw_cv_text) {
+          const extractResult = await aiApi.extractSkills(
+            profile.raw_cv_text, 
+            'gemini', 
+            true
+          )
+          
+          const skillsCount = extractResult.extracted_data?.technical_skills?.length || 
+                             extractResult.skills?.length || 0
+          
+          setMessage({ 
+            type: 'success', 
+            text: `CV uploaded successfully! Extracted ${skillsCount} skills automatically.` 
+          })
+        } else {
+          setMessage({ 
+            type: 'success', 
+            text: `CV uploaded successfully! Extracted ${result.extracted_length} characters.` 
+          })
+        }
+      } catch (extractError) {
+        // If skill extraction fails, still show success for upload
+        setMessage({ 
+          type: 'success', 
+          text: `CV uploaded successfully! Extracted ${result.extracted_length} characters.` 
+        })
+      }
+      
       setFile(null)
       
       // Reset file input
