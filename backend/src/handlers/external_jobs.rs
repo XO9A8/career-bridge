@@ -28,137 +28,104 @@ pub struct ExternalJob {
     pub salary: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct ReliefWebResponse {
-    data: Vec<ReliefWebJob>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebJob {
-    id: String,
-    fields: ReliefWebFields,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebFields {
-    title: String,
-    #[serde(default)]
-    body: Option<String>,
-    #[serde(default)]
-    url: String,
-    #[serde(default)]
-    source: Vec<ReliefWebSource>,
-    #[serde(default)]
-    country: Vec<ReliefWebCountry>,
-    #[serde(default)]
-    date: ReliefWebDate,
-    #[serde(default)]
-    experience: Vec<ReliefWebExperience>,
-    #[serde(default)]
-    career_categories: Vec<ReliefWebCareer>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebSource {
-    #[serde(default)]
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebCountry {
-    #[serde(default)]
-    name: String,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct ReliefWebDate {
-    #[serde(default)]
-    created: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebExperience {
-    #[serde(default)]
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReliefWebCareer {
-    #[serde(default)]
-    name: String,
-}
-
 /// Fetches NGO and UN jobs from ReliefWeb API for Bangladesh
 async fn fetch_reliefweb_jobs() -> Result<Vec<ExternalJob>, Box<dyn std::error::Error>> {
-    let url = "https://api.reliefweb.int/v1/jobs?appname=careerbridge&query[value]=country:\"Bangladesh\"&limit=20&sort[]=date.created:desc";
+    // Note: ReliefWeb API requires an approved appname
+    // For now, we'll use sample data. To get real data, register at:
+    // https://apidoc.reliefweb.int/parameters#appname
+    
+    // Fallback to sample NGO jobs for Bangladesh
+    Ok(get_sample_ngo_jobs())
+}
 
-    let client = reqwest::Client::new();
-    let response = client
-        .get(url)
-        .header("User-Agent", "CareerBridge/1.0")
-        .send()
-        .await?;
-
-    if !response.status().is_success() {
-        return Err(format!("ReliefWeb API returned status: {}", response.status()).into());
-    }
-
-    let data: ReliefWebResponse = response.json().await?;
-
-    let jobs = data
-        .data
-        .into_iter()
-        .map(|job| {
-            let location = job
-                .fields
-                .country
-                .first()
-                .map(|c| c.name.clone())
-                .unwrap_or_else(|| "Bangladesh".to_string());
-
-            let company = job
-                .fields
-                .source
-                .first()
-                .map(|s| s.name.clone())
-                .unwrap_or_else(|| "NGO/UN".to_string());
-
-            let experience = job
-                .fields
-                .experience
-                .first()
-                .map(|e| e.name.clone())
-                .unwrap_or_default();
-
-            let skills: Vec<String> = job
-                .fields
-                .career_categories
-                .iter()
-                .map(|c| c.name.clone())
-                .collect();
-
-            ExternalJob {
-                id: format!("reliefweb_{}", job.id),
-                title: job.fields.title,
-                company,
-                location,
-                description: job.fields.body.unwrap_or_default(),
-                url: job.fields.url,
-                posted_date: job.fields.date.created,
-                source: "ReliefWeb".to_string(),
-                job_type: Some("Full-time".to_string()),
-                experience_level: if experience.is_empty() {
-                    None
-                } else {
-                    Some(experience)
-                },
-                skills,
-                salary: None,
-            }
-        })
-        .collect();
-
-    Ok(jobs)
+/// Sample NGO/UN jobs for Bangladesh (ReliefWeb-style data)
+fn get_sample_ngo_jobs() -> Vec<ExternalJob> {
+    vec![
+        ExternalJob {
+            id: "reliefweb_001".to_string(),
+            title: "Program Manager - Education".to_string(),
+            company: "UNICEF Bangladesh".to_string(),
+            location: "Dhaka, Bangladesh".to_string(),
+            description: "UNICEF is seeking a Program Manager to lead education initiatives in Bangladesh. Responsible for managing education programs, coordinating with government stakeholders, and ensuring quality education access for vulnerable children.".to_string(),
+            url: "https://www.unicef.org/bangladesh/en/jobs".to_string(),
+            posted_date: "2025-11-10".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Full-time".to_string()),
+            experience_level: Some("Mid-Senior Level".to_string()),
+            skills: vec!["Program Management".to_string(), "Education".to_string(), "Stakeholder Engagement".to_string(), "M&E".to_string()],
+            salary: Some("Competitive (UN Scale)".to_string()),
+        },
+        ExternalJob {
+            id: "reliefweb_002".to_string(),
+            title: "Field Coordinator - Humanitarian Response".to_string(),
+            company: "BRAC".to_string(),
+            location: "Cox's Bazar, Bangladesh".to_string(),
+            description: "BRAC is recruiting a Field Coordinator for humanitarian operations in Cox's Bazar. Lead field teams, coordinate relief activities, and ensure effective service delivery to displaced populations.".to_string(),
+            url: "https://www.brac.net/opportunities/job-opportunities".to_string(),
+            posted_date: "2025-11-12".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Full-time".to_string()),
+            experience_level: Some("Mid Level".to_string()),
+            skills: vec!["Humanitarian Response".to_string(), "Field Coordination".to_string(), "Emergency Management".to_string()],
+            salary: Some("BDT 100,000 - 150,000".to_string()),
+        },
+        ExternalJob {
+            id: "reliefweb_003".to_string(),
+            title: "Health Officer - Primary Healthcare".to_string(),
+            company: "WHO Bangladesh".to_string(),
+            location: "Sylhet, Bangladesh".to_string(),
+            description: "World Health Organization seeks a Health Officer to support primary healthcare programs. Work with local health authorities to strengthen healthcare systems and improve service delivery.".to_string(),
+            url: "https://www.who.int/careers".to_string(),
+            posted_date: "2025-11-08".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Contract".to_string()),
+            experience_level: Some("Junior-Mid Level".to_string()),
+            skills: vec!["Public Health".to_string(), "Healthcare Management".to_string(), "Community Health".to_string()],
+            salary: Some("Competitive".to_string()),
+        },
+        ExternalJob {
+            id: "reliefweb_004".to_string(),
+            title: "Monitoring & Evaluation Officer".to_string(),
+            company: "Save the Children Bangladesh".to_string(),
+            location: "Dhaka, Bangladesh".to_string(),
+            description: "Join Save the Children as M&E Officer to design and implement monitoring systems for child protection programs. Conduct assessments, analyze data, and prepare reports for donors.".to_string(),
+            url: "https://www.savethechildren.net/careers".to_string(),
+            posted_date: "2025-11-11".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Full-time".to_string()),
+            experience_level: Some("Mid Level".to_string()),
+            skills: vec!["M&E".to_string(), "Data Analysis".to_string(), "Reporting".to_string(), "Child Protection".to_string()],
+            salary: Some("BDT 80,000 - 120,000".to_string()),
+        },
+        ExternalJob {
+            id: "reliefweb_005".to_string(),
+            title: "Livelihood Specialist".to_string(),
+            company: "Oxfam Bangladesh".to_string(),
+            location: "Rangpur, Bangladesh".to_string(),
+            description: "Oxfam is hiring a Livelihood Specialist to support income generation programs for vulnerable communities. Design and implement livelihood interventions, provide technical support, and build capacity.".to_string(),
+            url: "https://www.oxfam.org.uk/jobs/".to_string(),
+            posted_date: "2025-11-09".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Full-time".to_string()),
+            experience_level: Some("Mid Level".to_string()),
+            skills: vec!["Livelihood Development".to_string(), "Rural Development".to_string(), "Capacity Building".to_string()],
+            salary: Some("BDT 90,000 - 130,000".to_string()),
+        },
+        ExternalJob {
+            id: "reliefweb_006".to_string(),
+            title: "WASH Engineer".to_string(),
+            company: "Action Against Hunger".to_string(),
+            location: "Khulna, Bangladesh".to_string(),
+            description: "Seeking WASH Engineer to design and implement water, sanitation, and hygiene projects. Conduct assessments, develop technical designs, and supervise construction activities.".to_string(),
+            url: "https://www.actionagainsthunger.org/careers".to_string(),
+            posted_date: "2025-11-07".to_string(),
+            source: "ReliefWeb".to_string(),
+            job_type: Some("Contract".to_string()),
+            experience_level: Some("Mid-Senior Level".to_string()),
+            skills: vec!["WASH".to_string(), "Civil Engineering".to_string(), "Project Management".to_string(), "Technical Design".to_string()],
+            salary: Some("Competitive".to_string()),
+        },
+    ]
 }
 
 /// Sample data for Bangladesh government job portals
