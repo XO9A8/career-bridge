@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO application_tracking (user_id, job_id, notes)\n        VALUES ($1, $2, $3)\n        RETURNING id, user_id, job_id, status, applied_at, notes\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "job_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "applied_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "notes",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "94951411642d5b15bfa5d8b8d48c51ce99a2d314dc96ebce8e5d9aaca4aa07f0"
+}

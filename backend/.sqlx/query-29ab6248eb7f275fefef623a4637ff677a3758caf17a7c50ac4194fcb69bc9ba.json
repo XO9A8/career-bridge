@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET experience_level = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "experience_level",
+            "kind": {
+              "Enum": [
+                "fresher",
+                "junior",
+                "mid"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "29ab6248eb7f275fefef623a4637ff677a3758caf17a7c50ac4194fcb69bc9ba"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO users (\n            full_name, email, password_hash, \n            oauth_provider, oauth_id, avatar_url\n        )\n        VALUES ($1, $2, '', $3, $4, $5)\n        RETURNING id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "d4199662ce7f4182b371ebd1f1b54505d67b06733a0cc55c13b6fa244751cdf0"
+}

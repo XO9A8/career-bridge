@@ -1,0 +1,111 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id, full_name, email, education_level,\n            experience_level as \"experience_level: ExperienceLevel\",\n            preferred_track as \"preferred_track: CareerTrack\",\n            profile_completed as \"profile_completed!\",\n            skills, projects, target_roles, raw_cv_text, password_hash\n        FROM users \n        WHERE email = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "full_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "education_level",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "experience_level: ExperienceLevel",
+        "type_info": {
+          "Custom": {
+            "name": "experience_level",
+            "kind": {
+              "Enum": [
+                "fresher",
+                "junior",
+                "mid"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "preferred_track: CareerTrack",
+        "type_info": {
+          "Custom": {
+            "name": "career_track",
+            "kind": {
+              "Enum": [
+                "web_development",
+                "data",
+                "design",
+                "marketing"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "profile_completed!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "skills",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "projects",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 9,
+        "name": "target_roles",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 10,
+        "name": "raw_cv_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "password_hash",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "77dea6a4f1c9d0d057378ea724054238fb56c951786430530a6ac42c127d41ed"
+}
