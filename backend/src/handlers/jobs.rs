@@ -71,7 +71,7 @@ pub async fn get_job_recommendations(
                 id, job_title, company, location, job_description, required_skills,
                 experience_level as "experience_level: ExperienceLevel",
                 job_type as "job_type: JobType",
-                salary_min, salary_max
+                salary_min, salary_max, responsibilities, requirements, benefits
             FROM jobs 
             WHERE experience_level = $1
             LIMIT $2
@@ -89,7 +89,7 @@ pub async fn get_job_recommendations(
                 id, job_title, company, location, job_description, required_skills,
                 experience_level as "experience_level: ExperienceLevel",
                 job_type as "job_type: JobType",
-                salary_min, salary_max
+                salary_min, salary_max, responsibilities, requirements, benefits
             FROM jobs 
             WHERE experience_level = $1
             LIMIT $2
@@ -108,7 +108,7 @@ pub async fn get_job_recommendations(
                 id, job_title, company, location, job_description, required_skills,
                 experience_level as "experience_level: ExperienceLevel",
                 job_type as "job_type: JobType",
-                salary_min, salary_max
+                salary_min, salary_max, responsibilities, requirements, benefits
             FROM jobs 
             LIMIT $1
             "#,

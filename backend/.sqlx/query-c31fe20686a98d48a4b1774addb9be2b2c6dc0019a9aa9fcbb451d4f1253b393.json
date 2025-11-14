@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE users \n        SET education_level = $1,\n            experience_level = $2,\n            preferred_track = $3,\n            skills = $4,\n            projects = $5,\n            target_roles = $6,\n            profile_completed = TRUE,\n            updated_at = CURRENT_TIMESTAMP\n        WHERE id = $7\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        {
+          "Custom": {
+            "name": "experience_level",
+            "kind": {
+              "Enum": [
+                "fresher",
+                "junior",
+                "mid"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "career_track",
+            "kind": {
+              "Enum": [
+                "web_development",
+                "data",
+                "design",
+                "marketing"
+              ]
+            }
+          }
+        },
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c31fe20686a98d48a4b1774addb9be2b2c6dc0019a9aa9fcbb451d4f1253b393"
+}

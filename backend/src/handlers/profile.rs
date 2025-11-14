@@ -1,8 +1,13 @@
 //! User profile management handlers.
 
-use axum::{extract::State, Json};
+use axum::{
+    extract::{State, Multipart},
+    Json,
+};
 use validator::Validate;
 use tracing::{info, warn, error, debug};
+use tempfile::NamedTempFile;
+use std::io::Write;
 use crate::models::{User, ExperienceLevel, CareerTrack};
 use crate::errors::{AppResult, AppError};
 use crate::auth::AuthUser;
@@ -205,4 +210,144 @@ pub async fn update_profile(
     Ok(Json(serde_json::json!({
         "message": "Profile updated successfully"
     })))
+}
+
+/// Uploads and processes a CV/resume PDF file.
+/// 
+/// Accepts a PDF file via multipart form upload, extracts the text content,
+/// and saves it to the user's profile as `raw_cv_text`.
+/// 
+/// # File Requirements
+/// 
+/// - Format: PDF only
+/// - Max size: 10MB
+/// - Field name: `cv_file`
+/// 
+/// # Errors
+/// 
+/// Returns an error if:
+/// - User is not authenticated
+/// - File is not a PDF
+/// - File exceeds size limit
+/// - PDF text extraction fails
+/// - Database operation fails
+pub async fn upload_cv(
+    auth_user: AuthUser,
+    State(app_state): State<AppState>,
+    mut multipart: Multipart,
+) -> AppResult<Json<serde_json::Value>> {
+    info!("Processing CV upload for user: {}", auth_user.user_id);
+    
+    const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
+    
+    // Process multipart form
+    while let Some(field) = multipart.next_field().await
+        .map_err(|e| {
+            error!("Failed to read multipart field: {}", e);
+            AppError::BadRequest("Invalid multipart data".to_string())
+        })? 
+    {
+        let field_name = field.name().unwrap_or("").to_string();
+        
+        if field_name != "cv_file" {
+            continue;
+        }
+        
+        // Get filename
+        let file_name = field.file_name()
+            .ok_or_else(|| {
+                warn!("CV upload failed: no filename provided for user {}", auth_user.user_id);
+                AppError::BadRequest("No filename provided".to_string())
+            })?
+            .to_string();
+        
+        debug!("Uploaded file: {}", file_name);
+        
+        // Verify it's a PDF file
+        if !file_name.to_lowercase().ends_with(".pdf") {
+            warn!("CV upload failed: invalid file type '{}' for user {}", file_name, auth_user.user_id);
+            return Err(AppError::BadRequest("Only PDF files are supported".to_string()));
+        }
+        
+        // Read file data
+        let file_data = field.bytes().await
+            .map_err(|e| {
+                error!("Failed to read file data: {}", e);
+                AppError::BadRequest("Failed to read file data".to_string())
+            })?;
+        
+        debug!("File size: {} bytes", file_data.len());
+        
+        // Check file size
+        if file_data.len() > MAX_FILE_SIZE {
+            warn!("CV upload failed: file too large ({} bytes) for user {}", file_data.len(), auth_user.user_id);
+            return Err(AppError::BadRequest("File size exceeds 10MB limit".to_string()));
+        }
+        
+        // Verify PDF header (should start with %PDF)
+        if file_data.len() < 5 || !file_data.starts_with(b"%PDF") {
+            error!("Invalid PDF header for user {}. First bytes: {:?}", auth_user.user_id, &file_data.get(0..10));
+            return Err(AppError::BadRequest("Invalid PDF file. The file may be corrupted or not a valid PDF.".to_string()));
+        }
+        
+        // Create a temporary file to write the PDF data
+        let mut temp_file = NamedTempFile::new()
+            .map_err(|e| {
+                error!("Failed to create temporary file for user {}: {}", auth_user.user_id, e);
+                AppError::InternalServerError
+            })?;
+        
+        temp_file.write_all(&file_data)
+            .map_err(|e| {
+                error!("Failed to write PDF data for user {}: {}", auth_user.user_id, e);
+                AppError::InternalServerError
+            })?;
+        
+        // Flush to ensure all data is written
+        temp_file.flush()
+            .map_err(|e| {
+                error!("Failed to flush PDF data for user {}: {}", auth_user.user_id, e);
+                AppError::InternalServerError
+            })?;
+        
+        let temp_path = temp_file.path();
+        
+        // Extract text from PDF
+        let extracted_text = pdf_extract::extract_text(temp_path)
+            .map_err(|e| {
+                error!("PDF text extraction failed for user {}: {}", auth_user.user_id, e);
+                AppError::BadRequest(format!("Failed to extract text from PDF: {}", e))
+            })?;
+        
+        debug!("Extracted {} characters from PDF", extracted_text.len());
+        
+        if extracted_text.trim().is_empty() {
+            warn!("CV upload: extracted text is empty for user {}", auth_user.user_id);
+            return Err(AppError::BadRequest("PDF appears to be empty or contains no extractable text".to_string()));
+        }
+        
+        // Save extracted text to database
+        sqlx::query!(
+            "UPDATE users SET raw_cv_text = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+            extracted_text,
+            auth_user.user_id
+        )
+        .execute(&app_state.db_pool)
+        .await
+        .map_err(|e| {
+            error!("Failed to save CV text for user {}: {}", auth_user.user_id, e);
+            e
+        })?;
+        
+        info!("CV uploaded and processed successfully for user: {}", auth_user.user_id);
+        
+        return Ok(Json(serde_json::json!({
+            "message": "CV uploaded and processed successfully",
+            "extracted_length": extracted_text.len()
+        })));
+    }
+    
+    // If we get here, no cv_file field was found
+    warn!("CV upload failed: no cv_file field found for user {}", auth_user.user_id);
+    Err(AppError::BadRequest("No cv_file field found in request".to_string()))
 }

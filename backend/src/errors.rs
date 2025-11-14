@@ -34,6 +34,10 @@ pub enum AppError {
     /// Requested resource not found
     #[error("Not found")]
     NotFound,
+    
+    /// Bad request with custom message
+    #[error("{0}")]
+    BadRequest(String),
 }
 
 impl IntoResponse for AppError {
@@ -45,6 +49,7 @@ impl IntoResponse for AppError {
             AppError::ValidationError(_) => debug!("Validation error: {:?}", self),
             AppError::Unauthorized => debug!("Unauthorized access attempt"),
             AppError::NotFound => debug!("Resource not found"),
+            AppError::BadRequest(msg) => warn!("Bad request: {}", msg),
             AppError::DatabaseError(err) => {
                 // Check if it's a user error (like duplicate key) vs system error
                 if let Some(db_err) = err.as_database_error() {
@@ -103,6 +108,11 @@ impl IntoResponse for AppError {
             AppError::NotFound => (
                 StatusCode::NOT_FOUND,
                 json!({"error": "Not found"})
+            ),
+            
+            AppError::BadRequest(msg) => (
+                StatusCode::BAD_REQUEST,
+                json!({"error": msg})
             )
         };
 

@@ -232,6 +232,12 @@ pub struct Job {
     /// Maximum salary offered in the range (optional, in local currency)
     #[sqlx(rename = "salary_max")]
     pub salary_max: Option<i32>,
+    /// List of job responsibilities
+    pub responsibilities: Vec<String>,
+    /// List of job requirements
+    pub requirements: Vec<String>,
+    /// List of benefits offered
+    pub benefits: Vec<String>,
 }
 
 /// Learning resource for skill development.

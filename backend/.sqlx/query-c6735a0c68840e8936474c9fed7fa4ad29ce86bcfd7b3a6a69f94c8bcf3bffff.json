@@ -1,0 +1,117 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id, job_title, company, location, job_description, required_skills,\n            experience_level as \"experience_level: ExperienceLevel\",\n            job_type as \"job_type: JobType\",\n            salary_min, salary_max, responsibilities, requirements, benefits\n        FROM jobs \n        WHERE LOWER(job_title) LIKE LOWER($1)\n        LIMIT 5\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "job_title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "company",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "location",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "job_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "required_skills",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "experience_level: ExperienceLevel",
+        "type_info": {
+          "Custom": {
+            "name": "experience_level",
+            "kind": {
+              "Enum": [
+                "fresher",
+                "junior",
+                "mid"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "job_type: JobType",
+        "type_info": {
+          "Custom": {
+            "name": "job_type",
+            "kind": {
+              "Enum": [
+                "internship",
+                "part_time",
+                "full_time",
+                "freelance"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "salary_min",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "salary_max",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "responsibilities",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 11,
+        "name": "requirements",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 12,
+        "name": "benefits",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c6735a0c68840e8936474c9fed7fa4ad29ce86bcfd7b3a6a69f94c8bcf3bffff"
+}

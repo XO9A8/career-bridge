@@ -22,9 +22,18 @@
 
 CareerBridge helps users achieve career goals through:
 - 🎯 **Skill Gap Analysis** - Identify and bridge skill gaps
-- 💼 **Smart Job Matching** - AI-powered recommendations
+- 💼 **Smart Job Matching** - AI-powered recommendations with real job details
 - 📚 **Personalized Learning** - Curated courses and resources
 - 📊 **Progress Tracking** - Monitor applications and learning
+
+### 🆕 Recent Enhancement (November 2025)
+The Job API now includes **comprehensive job details** directly from the database:
+- ✅ Real responsibilities for each position
+- ✅ Actual job requirements and qualifications
+- ✅ Company benefits and perks
+- ✅ No client-side generation - all data is authentic and database-driven
+
+See `BACKEND_CHANGES.md` for migration details.
 
 ## ✨ Features
 
@@ -45,7 +54,8 @@ CareerBridge helps users achieve career goals through:
 - **Progress Tracking**: `profile_completed` flag to show onboarding prompts
 - **Flexible Updates**: Update any profile field independently
 - **Complete Profiles**: Skills, projects, education, experience, target roles
-- **CV/Resume Storage**: Raw text for future AI analysis
+- **CV/Resume Upload**: Upload PDF files with automatic text extraction
+- **Manual CV Input**: Alternative text-based CV entry
 - **Career Preferences**: Track preferred career path and target roles
 
 ### 💼 Job Recommendations
@@ -53,6 +63,7 @@ CareerBridge helps users achieve career goals through:
 - Match score calculation (0-100%)
 - Matched and missing skills identification
 - Detailed job descriptions
+- **Real job details**: responsibilities, requirements, and benefits from database
 - Salary range information (min-max)
 - Filter by experience level and job type
 - Works even before profile completion
@@ -99,7 +110,7 @@ createdb -U postgres database_db
 # 4. Run schema
 psql -U postgres -d database_db -f schema.sql
 
-# 5. Seed data (includes 20 jobs with descriptions & salary ranges)
+# 5. Seed data (includes 20 jobs with full details: descriptions, salary ranges, responsibilities, requirements, benefits)
 psql -U postgres -d database_db -f seed_data.sql
 
 # 6. Build and run
@@ -124,6 +135,8 @@ Server starts at: `http://127.0.0.1:3000`
 - **Database**: PostgreSQL 14+ with SQLx
 - **Authentication**: JWT (jsonwebtoken)
 - **Password Security**: Argon2
+- **File Upload**: Axum Typed Multipart
+- **PDF Processing**: pdf-extract for CV text extraction
 - **Validation**: Validator with derive macros
 - **Logging**: Tracing
 - **Runtime**: Tokio
@@ -337,6 +350,33 @@ Content-Type: application/json
 
 > 💡 **Note**: All fields optional. Only provided fields are updated.
 
+#### Upload CV/Resume PDF
+```http
+POST /api/profile/cv/upload
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+
+Field name: cv_file
+File type: PDF only
+Max size: 10MB
+```
+
+**Response**:
+```json
+{
+  "message": "CV uploaded and processed successfully",
+  "extracted_length": 1234
+}
+```
+
+The PDF text is automatically extracted and saved to `raw_cv_text` field. The endpoint:
+- Accepts only PDF files
+- Extracts text content using `pdf-extract`
+- Validates the file contains readable text
+- Saves the extracted text to the user's profile
+
+> 💡 **Note**: Users can still manually provide CV text via the `PUT /api/profile` endpoint.
+
 #### Get Job Recommendations
 ```http
 GET /api/jobs/recommendations?experience_level=junior&limit=10
@@ -361,7 +401,28 @@ GET /api/jobs/recommendations?experience_level=junior&limit=10
       "experience_level": "junior",
       "job_type": "full_time",
       "salary_min": 60000,
-      "salary_max": 80000
+      "salary_max": 80000,
+      "responsibilities": [
+        "Develop and maintain responsive web applications using React",
+        "Collaborate with UX/UI designers to implement pixel-perfect designs",
+        "Write clean, maintainable, and well-documented code",
+        "Participate in code reviews and contribute to team knowledge sharing",
+        "Optimize application performance and ensure cross-browser compatibility"
+      ],
+      "requirements": [
+        "1-2 years of experience with JavaScript and React",
+        "Strong understanding of HTML5, CSS3, and responsive design principles",
+        "Experience with version control systems (Git)",
+        "Good problem-solving skills and attention to detail",
+        "Bachelor's degree in Computer Science or related field (or equivalent experience)"
+      ],
+      "benefits": [
+        "Flexible remote work arrangement",
+        "Health, dental, and vision insurance",
+        "Professional development budget",
+        "401(k) with company match",
+        "Generous PTO policy"
+      ]
     },
     "match_score": 66.7,
     "matched_skills": ["JavaScript", "React"],
@@ -474,6 +535,9 @@ GET /api/progress
 - `job_type` (ENUM)
 - `salary_min` (INTEGER, nullable)
 - `salary_max` (INTEGER, nullable)
+- `responsibilities` (TEXT[]) - Array of job responsibilities
+- `requirements` (TEXT[]) - Array of job requirements
+- `benefits` (TEXT[]) - Array of company benefits
 
 #### learning_resources
 - `id` (SERIAL, PK)

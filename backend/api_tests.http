@@ -99,6 +99,23 @@ Content-Type: application/json
   "raw_cv_text": "Experienced developer with 3 years of experience in web development..."
 }
 
+### Upload CV/Resume PDF
+# Note: The file path should be relative to this .http file or absolute
+# Make sure you have a PDF file at the specified location
+POST {{baseUrl}}/profile/cv/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="cv_file"; filename="resume.pdf"
+Content-Type: application/pdf
+
+< ../resume.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+### Verify CV Text Stored in DB (for testing purposes)
+##SELECT full_name, raw_cv_text
+##FROM users
+##WHERE id = '510912e7-7f2f-4fe7-9bfa-0aa629a5d8c7';
 ###
 ### ============================================================================
 ### JOB RECOMMENDATIONS (Protected Routes)

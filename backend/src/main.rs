@@ -35,6 +35,10 @@ async fn main() {
     
     info!("Connecting to database...");
     
+    if std::env::var("SQLX_OFFLINE").is_ok() {
+        println!("cargo:rustc-env=SQLX_OFFLINE=true");
+    }
+    
     // Create database connection pool
     let db_pool = PgPool::connect(&database_url)
         .await

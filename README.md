@@ -1,167 +1,194 @@
 # CareerBridge – AI-Powered Career Platform
 
-CareerBridge is a modern, feature-rich web application designed to help students and fresh graduates discover their perfect career path through AI-powered recommendations, curated job opportunities, and personalized learning resources.  
-The interface features a sleek dark theme with glassmorphism effects, blue-purple gradient accents, and smooth animations to deliver a professional yet approachable experience.
+> A comprehensive career development platform helping students and fresh graduates discover their perfect career path through intelligent job matching, personalized learning recommendations, and progress tracking.
 
-## Highlights
+## 🌟 Overview
 
-- **Dynamic landing page** with hero section, feature showcase, how-it-works guide, and scrolling testimonials
-- **Interactive dashboard** displaying personalized job recommendations, learning resources, and profile match indicators
-- **Advanced jobs marketplace** with real-time search, location/type filters, and detailed job modal with full descriptions
-- **Learning resources hub** featuring skill and cost-based filters, curated course cards, and direct platform links
-- **Comprehensive profile management** for editing personal info, skills, career preferences, and CV content
-- **Modern authentication** with split-screen login/register flows, Google OAuth integration, and gradient hero sections
-- **Professional footer** inspired by industry leaders, with contact info, navigation links, and social media integration
-- **Smooth animations** and polished hover states creating cohesive user experience across all pages
+CareerBridge connects job seekers with opportunities that match their skills and career goals. Built with modern technologies, the platform offers:
 
-## Tech Stack
+- **Smart Job Matching** - Get personalized job recommendations based on your skills and experience
+- **Skill Gap Analysis** - Discover what skills you need and get learning recommendations
+- **Progress Tracking** - Monitor your job applications and learning journey
+- **Multiple Login Options** - Sign in with email, Google, or GitHub
+- **Beautiful Interface** - Modern dark theme with smooth animations
 
-- **Next.js 15.3.5** with Turbopack for blazing-fast development
-- **React 19** with client-side interactivity
-- **Tailwind CSS 4** with custom glassmorphism and gradient utilities
-- **Framer Motion** for smooth page transitions and animations
-- **Radix UI** components for accessible, unstyled primitives
-- **Lucide React** for beautiful, consistent iconography
-- **TypeScript** for type-safe development
-- Custom CSS animations for floating effects and infinite scrolling
+### 🎯 Who Is This For?
+- 🎓 **Students** seeking internships and career guidance
+- 👨‍💼 **Fresh Graduates** starting their professional journey
+- 📈 **Career Changers** exploring new opportunities
+- 💼 **Job Seekers** looking for their next role
 
-## Quick Start
+## ✨ Key Features
 
+### 🔐 Authentication
+- Email and password login
+- Google OAuth integration
+- GitHub OAuth integration
+- Secure JWT-based sessions
+
+### 💼 Job Search
+- Personalized job recommendations with match scores
+- Search and filter by location, type, and experience level
+- View detailed job descriptions, requirements, and benefits
+- Track your applications
+
+### 📚 Learning
+- Discover courses and tutorials based on your skill gaps
+- Track your learning progress
+- Get recommendations tailored to your career goals
+- Filter by cost (free/paid) and skills
+
+### 📊 Career Development
+- Analyze skill gaps for target roles
+- See which skills employers are looking for
+- Get a match percentage for different job positions
+- Track your improvement over time
+
+### 🎨 Modern Experience
+- Clean, intuitive interface with dark/light themes
+- Smooth animations and transitions
+- Mobile-responsive design
+- Fast and reliable performance
+
+## 🛠️ Technology Stack
+
+**Backend:**
+- Rust with Axum framework
+- PostgreSQL database
+- JWT authentication
+
+**Frontend:**
+- Next.js 15 with React 19
+- TypeScript
+- Tailwind CSS
+- Radix UI components
+
+> For detailed technical information, see [Backend Documentation](backend/README.md) and [Frontend Documentation](frontend/README.md).
+
+## ⚡ Quick Start
+
+### Prerequisites
+- Rust 1.70+ ([Install](https://rustup.rs/))
+- Node.js 18+ ([Install](https://nodejs.org/))
+- PostgreSQL 14+ ([Install](https://www.postgresql.org/download/))
+
+### Setup Instructions
+
+**1. Clone the Repository**
 ```bash
-# Clone the repository
 git clone https://github.com/tamim2763/career-bridge.git
+cd career-bridge
+```
 
-# Navigate to frontend directory
-cd career-bridge/frontend
+**2. Set Up Backend** (See [detailed backend setup](backend/README.md))
+```bash
+cd backend
+
+# Create database
+createdb -U postgres career_bridge
+
+# Apply schema and seed data
+psql -U postgres -d career_bridge -f schema.sql
+psql -U postgres -d career_bridge -f seed_data.sql
+
+# Configure .env file with database and OAuth credentials
+# Then start the server
+cargo run
+```
+
+Backend runs at: `http://localhost:3000`
+
+**3. Set Up Frontend** (See [detailed frontend setup](frontend/README.md))
+```bash
+cd frontend
 
 # Install dependencies
 npm install
 
-# Run development server
+# Start development server
 npm run dev
 ```
 
-Navigate to `http://localhost:3001` to explore the application.
+Frontend runs at: `http://localhost:3001`
 
-> **Note:** The frontend runs on port 3001, while the backend API runs on port 3000. Make sure both servers are running for the application to work properly.
+> **Note:** Both servers must run simultaneously for the application to work properly.
 
-## Project Structure
+### Quick Test
+Visit `http://localhost:3001` to explore the application, or test the API:
+```bash
+curl http://localhost:3000/
+```
+
+## 📁 Project Structure
 
 ```
 career-bridge/
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── dashboard/          # User dashboard with recommendations
-│   │   │   ├── jobs/               # Job listings with search & filters
-│   │   │   ├── resources/          # Learning resources catalog
-│   │   │   ├── profile/            # User profile management
-│   │   │   ├── login/              # Authentication - sign in
-│   │   │   ├── register/           # Authentication - sign up
-│   │   │   ├── onboarding/         # Multi-step onboarding flow
-│   │   │   ├── page.tsx            # Landing page
-│   │   │   ├── layout.tsx          # Root layout wrapper
-│   │   │   ├── template.tsx        # Page transition wrapper
-│   │   │   └── globals.css         # Global styles & animations
-│   │   ├── components/
-│   │   │   ├── ui/                 # Reusable UI components (Radix UI)
-│   │   │   ├── Navbar.tsx          # Navigation component
-│   │   │   ├── Footer.tsx          # Footer with links & contact
-│   │   │   ├── TestimonialScroll.tsx  # Infinite scrolling testimonials
-│   │   │   ├── OnboardingFlow.tsx  # Multi-step onboarding component
-│   │   │   ├── PageTransition.tsx  # Framer Motion page transitions
-│   │   │   ├── ThemeToggle.tsx     # Dark/light theme switcher
-│   │   │   ├── ThemeProvider.tsx   # Theme context provider
-│   │   │   ├── JobCard.tsx         # Job listing card
-│   │   │   ├── ResourceCard.tsx    # Learning resource card
-│   │   │   └── JobDetailsModal.tsx # Job details modal
-│   │   └── lib/
-│   │       └── utils.ts            # Utility functions
-│   ├── public/                      # Static assets
-│   ├── package.json
-│   ├── next.config.ts
-│   └── README.md
-├── README.md
-└── .gitignore
+├── backend/                    # Rust API server
+│   ├── src/                   # Source code
+│   ├── schema.sql             # Database schema
+│   ├── seed_data.sql          # Sample data
+│   └── README.md              # Backend documentation
+│
+├── frontend/                   # Next.js application
+│   ├── src/                   # Source code
+│   │   ├── app/              # Pages and routes
+│   │   ├── components/       # React components
+│   │   └── lib/              # Utilities
+│   └── README.md              # Frontend documentation
+│
+├── LICENSE
+└── README.md                   # This file
 ```
 
-## Current Features
+### Main Pages
 
-### **Landing Page**
-- Engaging hero section with AI-powered platform messaging
-- Feature cards showcasing AI Career Roadmap, Job Matching, Learning Resources, and Progress Tracking
-- Step-by-step "How CareerBridge Works" guide
-- Infinite scrolling testimonials from successful users
-- Comprehensive footer with company info, navigation, and social links
+| Page | Description |
+|------|-------------|
+| **Landing** (`/`) | Hero section, features, testimonials |
+| **Dashboard** (`/dashboard`) | Personalized job and learning recommendations |
+| **Jobs** (`/jobs`) | Search and browse job listings |
+| **Resources** (`/resources`) | Learning materials and courses |
+| **Profile** (`/profile`) | Manage your profile and CV |
+| **Login/Register** | Authentication pages |
 
-### **Dashboard**
-- Personalized user summary with education, track, and experience
-- AI-powered job recommendations matched to user profile
-- Curated learning resources tailored to career goals
-- Interactive job details modal with full descriptions
+> For detailed architecture, see [Backend README](backend/README.md) and [Frontend README](frontend/README.md).
 
-### **Jobs Marketplace**
-- Real-time search across jobs, companies, and skills
-- Advanced filters (location: all/remote/onsite, type: full-time/part-time/contract/internship)
-- Responsive job cards with salary, skills, and quick actions
-- Detailed job modal with responsibilities, requirements, and benefits
+## 📚 Documentation
 
-### **Learning Resources**
-- Skill-based and cost-based filtering (free/paid)
-- Clean card layouts with platform badges
-- Direct links to external learning platforms
-- Responsive grid layout for optimal viewing
+### Core Documentation
+- **[Backend README](backend/README.md)** - API documentation, database schema, setup guide
+- **[Frontend README](frontend/README.md)** - Component architecture, UI system, development guide
+- **[API Tests](backend/api_tests.http)** - Interactive API examples
 
-### **Profile Management**
-- Editable personal information fields
-- Dynamic skills management with add/remove functionality
-- Career preferences (education, experience, track)
-- CV/Resume file upload (PDF, DOC, DOCX) with file management
+### Additional Resources
+- Database schema details in [Backend README](backend/README.md)
+- Component library in [Frontend README](frontend/README.md)
+- OAuth setup instructions in [Backend README](backend/README.md)
 
-### **Authentication**
-- Split-screen design with gradient hero sections
-- Login page with email/password and "Remember me" option
-- Register page with streamlined sign-up (name, email, password only)
-- Multi-step onboarding flow after registration (education, experience, career track)
-- Google OAuth integration with official branding
-- Elegant "OR" divider for social auth options
-- Mobile-responsive forms with validation
+## 🤝 Contributing
 
-### **UI/UX Excellence**
-- Consistent dark/light theme toggle with glassmorphism effects
-- Blue-purple gradient accents throughout
-- Smooth Framer Motion page transitions between routes
-- Subtle hover and tap animations on buttons and cards
-- Responsive design for all screen sizes
-- Accessible components with proper ARIA labels
+We welcome contributions! Here's how:
 
-## Design System
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Test thoroughly
+5. Commit (`git commit -m 'Add amazing feature'`)
+6. Push and create a Pull Request
 
-- **Colors**: Dark background with blue (#3b82f6) to purple (#a855f7) gradients
-- **Effects**: Glass morphism with backdrop blur, subtle borders, and glow effects
-- **Typography**: Poppins for headings, Inter for body text
-- **Animations**: Floating elements, infinite scroll, hover scale effects
-- **Components**: Radix UI primitives with custom Tailwind styling
+For coding standards and detailed guidelines, see the respective README files in `backend/` and `frontend/`.
 
-## Pages Overview
+## 📄 License
 
-1. **Home (`/`)** – Landing page with hero, features, how-it-works, testimonials, and footer
-2. **Dashboard (`/dashboard`)** – Personalized overview with job and resource recommendations
-3. **Jobs (`/jobs`)** – Searchable job listings with advanced filters
-4. **Resources (`/resources`)** – Curated learning materials with skill filters
-5. **Profile (`/profile`)** – User profile editor with skills management and CV upload
-6. **Login (`/login`)** – Sign in with email/password or Google OAuth
-7. **Register (`/register`)** – Create account with name, email, and password
-8. **Onboarding (`/onboarding`)** – Multi-step onboarding flow for education, experience, and career track
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-Each page features smooth client-side navigation and maintains state during demo interactions.
+---
 
-## Future Enhancements
+<div align="center">
 
-- Backend integration with authentication API
-- AI-powered career roadmap generation
-- Real-time job matching algorithm
-- Progress tracking and goal setting
-- Social features (networking, mentorship)
-- Resume builder and interview preparation tools
+**Built with ❤️ by the From_Los_Santosh Team**
+
+🚀 Empowering careers through technology
+
+</div>
 

@@ -44,7 +44,7 @@ pub fn create_router(app_state: AppState) -> Router {
     info!("Setting up API routes:");
     info!("  ✓ Public routes: /, /api/register, /api/login");
     info!("  ✓ OAuth routes: /api/auth/google, /api/auth/github");
-    info!("  ✓ Protected routes: profile, jobs, learning, applications, progress");
+    info!("  ✓ Protected routes: profile (+ CV upload), jobs, learning, applications, progress");
     
     Router::new()
         // Public routes
@@ -62,6 +62,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/profile", get(profile::get_profile))
         .route("/api/profile/complete", post(profile::complete_profile))
         .route("/api/profile", put(profile::update_profile))
+        .route("/api/profile/cv/upload", post(profile::upload_cv))
         
         // Protected routes - Job Recommendations
         .route("/api/jobs/recommendations", get(jobs::get_job_recommendations))

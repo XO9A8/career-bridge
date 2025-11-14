@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE users \n                SET oauth_provider = $1, oauth_id = $2, avatar_url = $3\n                WHERE id = $4\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a6a3cdbecbca73e8fcf7ec0304f989be7e6e1c168d790dfb34858d2686abccbd"
+}

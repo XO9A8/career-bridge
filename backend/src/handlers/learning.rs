@@ -160,7 +160,7 @@ pub async fn analyze_skill_gap(
             id, job_title, company, location, job_description, required_skills,
             experience_level as "experience_level: ExperienceLevel",
             job_type as "job_type: JobType",
-            salary_min, salary_max
+            salary_min, salary_max, responsibilities, requirements, benefits
         FROM jobs 
         WHERE LOWER(job_title) LIKE LOWER($1)
         LIMIT 5

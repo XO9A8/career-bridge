@@ -1,0 +1,60 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id, title, platform, url, related_skills,\n            cost as \"cost: CostIndicator\"\n        FROM learning_resources\n        LIMIT 50\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "platform",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "related_skills",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 5,
+        "name": "cost: CostIndicator",
+        "type_info": {
+          "Custom": {
+            "name": "cost_indicator",
+            "kind": {
+              "Enum": [
+                "free",
+                "paid"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6037c7bc33ba718b3aa9fe97cad8ff54e61ae71ed91f6d6c4166adcf8274e326"
+}

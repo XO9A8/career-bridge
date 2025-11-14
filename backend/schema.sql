@@ -37,6 +37,9 @@ CREATE TABLE jobs (
     job_type job_type NOT NULL,
     salary_min INTEGER,
     salary_max INTEGER,
+    responsibilities TEXT[] NOT NULL DEFAULT '{}',
+    requirements TEXT[] NOT NULL DEFAULT '{}',
+    benefits TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
