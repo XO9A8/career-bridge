@@ -16,11 +16,9 @@ COPY Cargo.toml Cargo.lock ./
 # Copy source code
 COPY src ./src
 
-# Copy .sqlx directory for offline SQLx compilation
-COPY .sqlx ./.sqlx
-
 # Build application with release profile
-ENV SQLX_OFFLINE=true
+# SQLx will connect to DATABASE_URL during build to verify queries
+ARG DATABASE_URL
 RUN cargo build --release
 
 # Runtime stage

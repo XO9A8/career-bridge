@@ -1,6 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+buildArgs = ["DATABASE_URL=${{DATABASE_URL}}"]
 
 [deploy]
 startCommand = "./backend"
