@@ -47,7 +47,7 @@ export default function Navbar() {
         <div className={`flex items-center justify-between ${isDemoPage ? 'h-20' : 'h-16'}`}>
           {/* Logo and Demo Badge */}
           <div className="flex items-center space-x-3">
-            <Link href="/" className="flex items-center space-x-2 group">
+            <Link href={isAuth ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:shadow-blue-500/50 transition-all duration-300">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>

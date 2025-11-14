@@ -63,6 +63,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/profile/complete", post(profile::complete_profile))
         .route("/api/profile", put(profile::update_profile))
         .route("/api/profile/cv/upload", post(profile::upload_cv))
+        .route("/api/profile/generate-cv", get(profile::generate_cv))
         // Protected routes - Job Recommendations
         .route(
             "/api/jobs/recommendations",
