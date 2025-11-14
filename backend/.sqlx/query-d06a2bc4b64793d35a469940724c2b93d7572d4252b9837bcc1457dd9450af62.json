@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT experience_level as \"experience_level: crate::models::ExperienceLevel\", COUNT(*) as count\n            FROM jobs\n            GROUP BY experience_level\n            ORDER BY count DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "experience_level: crate::models::ExperienceLevel",
+        "type_info": {
+          "Custom": {
+            "name": "experience_level",
+            "kind": {
+              "Enum": [
+                "fresher",
+                "junior",
+                "mid"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "d06a2bc4b64793d35a469940724c2b93d7572d4252b9837bcc1457dd9450af62"
+}

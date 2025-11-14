@@ -132,6 +132,7 @@ pub fn create_router(app_state: AppState) -> Router {
         )
         // Protected routes - Career Mentor Chatbot (Point 5)
         .route("/api/ai/ask-mentor", post(ai::ask_career_mentor))
+        .route("/api/ai/enhanced-mentor", post(ai::enhanced_career_mentor))
         // Add CORS middleware
         .layer(
             CorsLayer::new()

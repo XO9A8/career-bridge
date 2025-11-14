@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT job_type as \"job_type: crate::models::JobType\", COUNT(*) as count\n            FROM jobs\n            GROUP BY job_type\n            ORDER BY count DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "job_type: crate::models::JobType",
+        "type_info": {
+          "Custom": {
+            "name": "job_type",
+            "kind": {
+              "Enum": [
+                "internship",
+                "part_time",
+                "full_time",
+                "freelance"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "434da4b274f9d3750665b17313c6c916beb65895516fe339e49fedf6ca87a0e2"
+}

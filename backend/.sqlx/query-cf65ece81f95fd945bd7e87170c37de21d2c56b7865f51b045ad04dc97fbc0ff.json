@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(*) as app_count, status\n        FROM application_tracking\n        WHERE user_id = $1\n        GROUP BY status\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "app_count",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "status",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      false
+    ]
+  },
+  "hash": "cf65ece81f95fd945bd7e87170c37de21d2c56b7865f51b045ad04dc97fbc0ff"
+}

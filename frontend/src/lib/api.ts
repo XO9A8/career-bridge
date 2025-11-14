@@ -729,6 +729,39 @@ export const aiApi = {
     return await response.json();
   },
 
+  // Enhanced career mentor with intelligent context awareness
+  enhancedAskMentor: async (
+    question: string,
+    options: {
+      provider?: 'gemini' | 'groq';
+      includeSkillGap?: boolean;
+      includeMarketAnalysis?: boolean;
+      includeCvData?: boolean;
+      targetRole?: string;
+    } = {}
+  ): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/enhanced-mentor`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        question,
+        provider: options.provider || 'gemini',
+        include_skill_gap: options.includeSkillGap || false,
+        include_market_analysis: options.includeMarketAnalysis || false,
+        include_cv_data: options.includeCvData || false,
+        target_role: options.targetRole
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get answer');
+    }
+
+    return await response.json();
+  },
+
   // Generate professional summary
   generateSummary: async (provider: 'gemini' | 'groq' = 'gemini'): Promise<any> => {
     const token = getToken();

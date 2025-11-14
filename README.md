@@ -133,6 +133,68 @@ Visit `http://localhost:3001` to explore the application, or test the API:
 curl http://localhost:3000/
 ```
 
+## 🤖 Automation Scripts
+
+The project includes automation scripts for easy building and running:
+
+### Windows (PowerShell)
+```powershell
+# Quick start - install everything and setup database
+.\make.ps1 quickstart
+
+# Start development servers
+.\make.ps1 dev
+
+# Build for production
+.\make.ps1 build
+
+# Run tests
+.\make.ps1 test
+
+# View all commands
+.\make.ps1 help
+```
+
+### Windows (Batch)
+```cmd
+make.bat dev          # Start development
+make.bat build        # Build production
+make.bat help         # Show help
+```
+
+### Linux/Mac (Makefile)
+```bash
+# Quick start
+make quickstart
+
+# Start development
+make dev
+
+# Build production
+make build
+
+# Run tests
+make test
+
+# View all commands
+make help
+```
+
+### Available Commands
+- `install` - Install all dependencies (Rust + Node.js)
+- `quickstart` - Complete setup (install + database)
+- `dev` - Start both servers in development mode
+- `build` - Build for production
+- `test` - Run all tests
+- `lint` - Run code linters
+- `clean` - Clean build artifacts
+- `db-setup` - Create and initialize database
+- `db-seed` - Populate with sample data
+- `db-reset` - Reset database completely
+- `check` - Verify all prerequisites installed
+
+See `make.ps1` or `Makefile` for the complete list of commands.
+
 ## 📁 Project Structure
 
 ```

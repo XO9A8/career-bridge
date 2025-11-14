@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT title, platform, related_skills, cost as \"cost: crate::models::CostIndicator\"\n            FROM learning_resources\n            LIMIT 50\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "platform",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "related_skills",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 3,
+        "name": "cost: crate::models::CostIndicator",
+        "type_info": {
+          "Custom": {
+            "name": "cost_indicator",
+            "kind": {
+              "Enum": [
+                "free",
+                "paid"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "57649052533780408688bf8a644818b50eb7728d69bfe7ecf5e073ad3f7c01de"
+}

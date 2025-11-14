@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT required_skills\n            FROM jobs\n            WHERE LOWER(job_title) LIKE LOWER($1)\n            LIMIT 10\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "required_skills",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3493da1907f0bff8acb0ff9b72444195138a109c3f99e53578d49ded7e7d2907"
+}

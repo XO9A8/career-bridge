@@ -322,7 +322,7 @@ Return a JSON object:
   "question": "the question",
   "answer": "your answer here - keep it concise and match the question's complexity (2-3 sentences for simple questions, more for complex career queries. Include inline disclaimer if making predictions/suggestions)",
   "related_topics": ["topic1", "topic2"] (only for career questions, empty array for greetings),
-  "disclaimer": "This guidance is based on current industry trends and best practices. Actual outcomes may vary based on individual circumstances, market conditions, and personal effort. This is a suggestion to help guide your career decisions, not a guarantee of specific results." (only include for career advice questions, null for simple greetings)
+   (only include for career advice questions, null for simple greetings)
 }}
 
 Return valid JSON only."#,

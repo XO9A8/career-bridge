@@ -658,6 +658,495 @@ pub async fn ask_career_mentor(
     })))
 }
 
+/// Enhanced career mentor with intelligent context awareness
+///
+/// # Endpoint
+/// `POST /api/ai/enhanced-mentor`
+///
+/// # Request Body
+/// ```json
+/// {
+///   "question": "What skills should I learn?",
+///   "provider": "gemini",
+///   "include_skill_gap": true,
+///   "include_market_analysis": true,
+///   "include_cv_data": true,
+///   "target_role": "Full Stack Developer"
+/// }
+/// ```
+pub async fn enhanced_career_mentor(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Json(payload): Json<serde_json::Value>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let question = payload
+        .get("question")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| AppError::ValidationError("question is required".to_string()))?;
+
+    let provider_str = payload
+        .get("provider")
+        .and_then(|v| v.as_str())
+        .unwrap_or("gemini");
+
+    let include_skill_gap = payload
+        .get("include_skill_gap")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    let include_market_analysis = payload
+        .get("include_market_analysis")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    let include_cv_data = payload
+        .get("include_cv_data")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    let target_role = payload
+        .get("target_role")
+        .and_then(|v| v.as_str());
+
+    // Check if user is asking for direct database statistics
+    let question_lower = question.to_lowercase();
+    let is_db_stats_query = question_lower.contains("how many") || 
+                           question_lower.contains("database") ||
+                           question_lower.contains("total") ||
+                           question_lower.contains("count");
+
+    // Check if asking about skill gaps/match scores
+    let is_skill_query = question_lower.contains("skill") && 
+                         (question_lower.contains("match") || 
+                          question_lower.contains("gap") ||
+                          question_lower.contains("score") ||
+                          question_lower.contains("percentage") ||
+                          question_lower.contains("of the role") ||
+                          question_lower.contains("for the role") ||
+                          question_lower.contains("for a role"));
+
+    // If asking about database stats, always include market analysis to get counts
+    let include_market_analysis = include_market_analysis || is_db_stats_query;
+    
+    // If asking about skill match/gap, always include skill gap analysis
+    let include_skill_gap = include_skill_gap || is_skill_query;
+
+    tracing::info!(
+        "Enhanced mentor request from user {}: skill_gap={}, market={}, cv={}, role={:?}, is_skill_query={}",
+        auth_user.user_id, include_skill_gap, include_market_analysis, include_cv_data, target_role, is_skill_query
+    );
+
+    // Get user profile
+    let user = sqlx::query_as::<_, crate::models::User>("SELECT * FROM users WHERE id = $1")
+        .bind(auth_user.user_id)
+        .fetch_one(&state.db_pool)
+        .await?;
+
+    let mut context_parts = vec![
+        format!("User Profile:\n- Name: {}", user.full_name),
+        format!("- Current Skills: {}", user.skills.join(", ")),
+        format!("- Target Roles: {}", user.target_roles.join(", ")),
+        format!("- Experience Level: {:?}", user.experience_level),
+        format!("- Projects: {}", user.projects.join(", ")),
+    ];
+
+    // Add skill gap analysis if requested
+    if include_skill_gap {
+        // Extract role from target_role parameter or question or user profile
+        let role_to_analyze = if let Some(role) = target_role {
+            // If target_role looks like a full question, extract the role from it
+            if role.to_lowercase().contains("skill") || role.to_lowercase().contains("what") {
+                // Common role keywords to search for in the string
+                let role_keywords = [
+                    "data analyst", "data scientist", "backend developer", "frontend developer",
+                    "full stack developer", "software engineer", "web developer", "devops engineer",
+                    "machine learning engineer", "ui/ux designer", "product manager", "react developer",
+                    "java developer", "python developer", "node developer", "angular developer"
+                ];
+                
+                let role_lower = role.to_lowercase();
+                role_keywords.iter()
+                    .find(|&&keyword| role_lower.contains(keyword))
+                    .map(|&s| s)
+                    .or_else(|| user.target_roles.first().map(|s| s.as_str()))
+                    .unwrap_or("Software Developer")
+            } else {
+                role
+            }
+        } else {
+            // Try to extract from the question itself
+            let role_keywords = [
+                "data analyst", "data scientist", "backend developer", "frontend developer",
+                "full stack developer", "software engineer", "web developer", "devops engineer",
+                "machine learning engineer", "ui/ux designer", "product manager", "react developer",
+                "java developer", "python developer", "node developer", "angular developer"
+            ];
+            
+            let question_lower = question.to_lowercase();
+            role_keywords.iter()
+                .find(|&&keyword| question_lower.contains(keyword))
+                .map(|&s| s)
+                .or_else(|| user.target_roles.first().map(|s| s.as_str()))
+                .unwrap_or("Software Developer")
+        };
+
+        tracing::info!("Analyzing skill gap for role: {}", role_to_analyze);
+
+        // Find jobs matching target role - use broader search pattern
+        // Split role into words for flexible matching (e.g., "full stack" matches "Full Stack Developer")
+        let search_pattern = role_to_analyze
+            .split_whitespace()
+            .next()
+            .unwrap_or(role_to_analyze);
+            
+        tracing::info!("Searching for jobs with pattern: '{}'", search_pattern);
+            
+        let jobs = sqlx::query!(
+            r#"
+            SELECT required_skills
+            FROM jobs
+            WHERE LOWER(job_title) LIKE LOWER($1)
+            LIMIT 10
+            "#,
+            format!("%{}%", search_pattern)
+        )
+        .fetch_all(&state.db_pool)
+        .await?;
+        
+        tracing::info!("Found {} jobs matching pattern '{}'", jobs.len(), search_pattern);
+
+        if !jobs.is_empty() {
+            // Aggregate required skills
+            let mut all_required_skills = std::collections::HashSet::new();
+            for job in &jobs {
+                for skill in &job.required_skills {
+                    all_required_skills.insert(skill.clone());
+                }
+            }
+
+            let required_skills: Vec<String> = all_required_skills.into_iter().collect();
+
+            // Calculate gaps (case-insensitive)
+            let user_skills_lower: std::collections::HashSet<String> = user.skills
+                .iter()
+                .map(|s| s.to_lowercase())
+                .collect();
+            let required_skills_lower: std::collections::HashMap<String, String> = required_skills
+                .iter()
+                .map(|s| (s.to_lowercase(), s.clone()))
+                .collect();
+            let required_skills_set: std::collections::HashSet<String> = 
+                required_skills_lower.keys().cloned().collect();
+
+            let matching_skills: Vec<String> = user_skills_lower
+                .intersection(&required_skills_set)
+                .filter_map(|lower_key| required_skills_lower.get(lower_key).cloned())
+                .collect();
+
+            let skill_gaps: Vec<String> = required_skills_set
+                .difference(&user_skills_lower)
+                .filter_map(|lower_key| required_skills_lower.get(lower_key).cloned())
+                .collect();
+
+            let match_percentage = if !required_skills.is_empty() {
+                (matching_skills.len() as f64 / required_skills.len() as f64) * 100.0
+            } else {
+                0.0
+            };
+
+            tracing::info!(
+                "Skill gap calculation: {} matching / {} required = {:.1}%",
+                matching_skills.len(), required_skills.len(), match_percentage
+            );
+
+            context_parts.push(format!(
+                "\nSkill Gap Analysis for '{}':\n- Match Percentage: {:.1}%\n- Matching Skills ({}/{}): {}\n- Skills to Learn: {}",
+                role_to_analyze,
+                match_percentage,
+                matching_skills.len(),
+                required_skills.len(),
+                if matching_skills.is_empty() { "None yet".to_string() } else { matching_skills.join(", ") },
+                if skill_gaps.is_empty() { "None - you're ready!".to_string() } else { skill_gaps.join(", ") }
+            ));
+        } else {
+            context_parts.push(format!(
+                "\nSkill Gap Analysis: No jobs found for '{}' in our database. Consider asking about similar roles.",
+                role_to_analyze
+            ));
+            
+            // Suggest available job titles
+            let sample_titles = sqlx::query_scalar::<_, String>(
+                "SELECT DISTINCT job_title FROM jobs LIMIT 10"
+            )
+            .fetch_all(&state.db_pool)
+            .await?;
+            
+            if !sample_titles.is_empty() {
+                context_parts.push(format!(
+                    "Available job roles in database: {}",
+                    sample_titles.join(", ")
+                ));
+            }
+        }
+    }
+
+    // Add market analysis if requested
+    if include_market_analysis {
+        tracing::info!("Performing market analysis");
+
+        // Get total job count
+        let total_jobs = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM jobs")
+            .fetch_one(&state.db_pool)
+            .await?;
+
+        // Get total learning resources count
+        let total_resources = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM learning_resources")
+            .fetch_one(&state.db_pool)
+            .await?;
+
+        // Get total users count
+        let total_users = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM users")
+            .fetch_one(&state.db_pool)
+            .await?;
+
+        context_parts.push(format!(
+            "\nDatabase Statistics:\n- Total Jobs: {}\n- Total Learning Resources: {}\n- Total Users: {}",
+            total_jobs, total_resources, total_users
+        ));
+
+        // Get sample learning resources to show what's available
+        let sample_resources = sqlx::query!(
+            r#"
+            SELECT title, platform, related_skills, cost as "cost: crate::models::CostIndicator"
+            FROM learning_resources
+            LIMIT 50
+            "#
+        )
+        .fetch_all(&state.db_pool)
+        .await?;
+
+        if !sample_resources.is_empty() {
+            let resource_list: Vec<String> = sample_resources
+                .iter()
+                .map(|r| {
+                    let skills = r.related_skills.join(", ");
+                    format!("'{}' (Platform: {}, Skills: {}, Cost: {:?})", 
+                        r.title, r.platform, skills, r.cost)
+                })
+                .collect();
+            
+            context_parts.push(format!(
+                "- Sample Learning Resources:\n  {}", 
+                resource_list.join("\n  ")
+            ));
+        }
+
+        // Get unique companies count
+        let total_companies = sqlx::query_scalar::<_, i64>("SELECT COUNT(DISTINCT company) FROM jobs")
+            .fetch_one(&state.db_pool)
+            .await?;
+
+        context_parts.push(format!("- Unique Companies: {}", total_companies));
+
+        // Get experience level breakdown
+        let exp_breakdown = sqlx::query!(
+            r#"
+            SELECT experience_level as "experience_level: crate::models::ExperienceLevel", COUNT(*) as count
+            FROM jobs
+            GROUP BY experience_level
+            ORDER BY count DESC
+            "#
+        )
+        .fetch_all(&state.db_pool)
+        .await?;
+
+        if !exp_breakdown.is_empty() {
+            let exp_dist: Vec<String> = exp_breakdown
+                .iter()
+                .map(|row| format!("{:?}: {}", row.experience_level, row.count.unwrap_or(0)))
+                .collect();
+            
+            context_parts.push(format!("- By Experience Level: {}", exp_dist.join(", ")));
+        }
+
+        // Get most in-demand skills from all jobs
+        let skill_demand = sqlx::query!(
+            r#"
+            SELECT unnest(required_skills) as skill, COUNT(*) as demand_count
+            FROM jobs
+            GROUP BY skill
+            ORDER BY demand_count DESC
+            LIMIT 15
+            "#
+        )
+        .fetch_all(&state.db_pool)
+        .await?;
+
+        if !skill_demand.is_empty() {
+            let top_skills: Vec<String> = skill_demand
+                .iter()
+                .map(|row| format!("{} ({} jobs)", row.skill.as_deref().unwrap_or("Unknown"), row.demand_count.unwrap_or(0)))
+                .collect();
+
+            context_parts.push(format!(
+                "\nCurrent Market Trends (Based on Job Database):\n- Most In-Demand Skills: {}",
+                top_skills.join(", ")
+            ));
+
+            // Identify trending skills user doesn't have
+            let user_skills_lower: std::collections::HashSet<String> = user.skills
+                .iter()
+                .map(|s| s.to_lowercase())
+                .collect();
+
+            let missing_trending_skills: Vec<String> = skill_demand
+                .iter()
+                .filter_map(|row| {
+                    let skill = row.skill.as_deref()?;
+                    if !user_skills_lower.contains(&skill.to_lowercase()) {
+                        Some(format!("{} ({} jobs)", skill, row.demand_count.unwrap_or(0)))
+                    } else {
+                        None
+                    }
+                })
+                .take(10)
+                .collect();
+
+            if !missing_trending_skills.is_empty() {
+                context_parts.push(format!(
+                    "- Trending Skills You Should Consider Learning: {}",
+                    missing_trending_skills.join(", ")
+                ));
+            }
+        }
+
+        // Get job type distribution
+        let job_types = sqlx::query!(
+            r#"
+            SELECT job_type as "job_type: crate::models::JobType", COUNT(*) as count
+            FROM jobs
+            GROUP BY job_type
+            ORDER BY count DESC
+            "#
+        )
+        .fetch_all(&state.db_pool)
+        .await?;
+
+        if !job_types.is_empty() {
+            let type_dist: Vec<String> = job_types
+                .iter()
+                .map(|row| format!("{:?}: {}", row.job_type, row.count.unwrap_or(0)))
+                .collect();
+
+            context_parts.push(format!(
+                "- Job Market Distribution: {}",
+                type_dist.join(", ")
+            ));
+        }
+    }
+
+    // Add CV data if requested and available
+    if include_cv_data && user.raw_cv_text.is_some() {
+        let cv_length = user.raw_cv_text.as_ref().map(|cv| cv.len()).unwrap_or(0);
+        context_parts.push(format!(
+            "\nCV Data: User has uploaded a CV ({} characters). Can extract skills using /api/ai/extract-skills endpoint.",
+            cv_length
+        ));
+    }
+
+    // Get user's job applications for additional context
+    let applications = sqlx::query!(
+        r#"
+        SELECT COUNT(*) as app_count, status
+        FROM application_tracking
+        WHERE user_id = $1
+        GROUP BY status
+        "#,
+        auth_user.user_id
+    )
+    .fetch_all(&state.db_pool)
+    .await?;
+
+    if !applications.is_empty() {
+        let app_summary: Vec<String> = applications
+            .iter()
+            .map(|row| format!("{}: {}", row.status, row.app_count.unwrap_or(0)))
+            .collect();
+
+        context_parts.push(format!(
+            "\nJob Applications: {}",
+            app_summary.join(", ")
+        ));
+    }
+
+    let full_context = context_parts.join("\n");
+
+    tracing::debug!("Generated context for AI:\n{}", full_context);
+
+    // Build enhanced prompt that forces AI to use exact numbers from context
+    let enhanced_prompt = if include_skill_gap {
+        format!(
+            "IMPORTANT: The context below contains the user's ACTUAL skill gap analysis with match percentage. Use these EXACT numbers.\n\n{}\n\nQuestion: {}\n\nAnswer with the specific match percentage and skill gaps shown in the context above. Be direct and cite the exact numbers provided.",
+            full_context, question
+        )
+    } else if include_market_analysis {
+        format!(
+            "IMPORTANT: The context below contains ACTUAL DATA from our database. Use ONLY these exact numbers and resource names. Do NOT make up or estimate any statistics.\n\nWhen the user asks about resources, jobs, or statistics, refer to the specific data provided below.\n\n{}\n\nQuestion: {}\n\nAnswer based on the data above. If asking about learning resources, reference the actual resource titles and platforms shown above.",
+            full_context, question
+        )
+    } else {
+        format!(
+            "Based on the following user context, answer their question:\n\n{}\n\nQuestion: {}",
+            full_context, question
+        )
+    };
+
+    // Call AI service with enhanced context
+    let ai_request = AIActionRequest {
+        action: crate::ai::types::ActionType::AskQuestion,
+        provider: if provider_str == "groq" {
+            crate::ai::types::AIProvider::Groq
+        } else {
+            crate::ai::types::AIProvider::Gemini
+        },
+        input: enhanced_prompt,
+        parameters: Some(json!({
+            "context": full_context,
+            "enhanced": true,
+            "include_skill_gap": include_skill_gap,
+            "include_market_analysis": include_market_analysis
+        })),
+    };
+
+    let ai_service = state
+        .ai_service
+        .as_ref()
+        .ok_or_else(|| AppError::ConfigurationError("AI service not configured".to_string()))?;
+
+    let response = ai_service.process_action(ai_request).await?;
+
+    // Extract the answer string from the response data
+    let answer_text = if let Some(answer_str) = response.data.get("answer").and_then(|a| a.as_str()) {
+        answer_str.to_string()
+    } else {
+        // Fallback: try to get the whole data as string or serialize it
+        response.data.as_str()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| serde_json::to_string_pretty(&response.data).unwrap_or_default())
+    };
+
+    Ok(Json(json!({
+        "success": response.success,
+        "answer": answer_text,
+        "provider": response.provider,
+        "context_included": {
+            "skill_gap": include_skill_gap,
+            "market_analysis": include_market_analysis,
+            "cv_data": include_cv_data
+        }
+    })))
+}
+
 /// Get all saved roadmaps for the logged-in user
 ///
 /// # Endpoint

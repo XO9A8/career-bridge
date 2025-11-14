@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT unnest(required_skills) as skill, COUNT(*) as demand_count\n            FROM jobs\n            GROUP BY skill\n            ORDER BY demand_count DESC\n            LIMIT 15\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "skill",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "demand_count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "170b69d09cb53c1845ef1d0d282d7f2be504087c7c122e196b78db22170f7bcd"
+}
