@@ -138,8 +138,6 @@ curl http://localhost:3000/
 
 ## 🔐 Environment Variables & API Keys
 
-> **⚠️ Important:** Never commit `.env` files to version control. All sensitive credentials must be configured through environment variables.
-
 ### Backend Environment Variables
 
 Create a `.env` file in the `backend/` directory with the following variables:
@@ -304,100 +302,6 @@ openssl rand -base64 32
 | Variable | Required | Purpose | Default |
 |----------|----------|---------|---------|
 | `NEXT_PUBLIC_API_BASE_URL` | ❌ | Backend API endpoint | `http://127.0.0.1:3000/api` |
-
-### Security Best Practices
-
-1. **Never commit `.env` files** - Already in `.gitignore`
-2. **Use strong JWT secrets** - Minimum 32 characters, random and unique
-3. **Rotate secrets regularly** - Especially in production
-4. **Use different keys for dev/prod** - Never reuse production keys
-5. **Restrict API key permissions** - Only grant necessary permissions
-6. **Monitor API usage** - Set up usage alerts to detect abuse
-7. **Use environment-specific values** - Different values for development, staging, production
-
-### Production Deployment
-
-For production deployment (Railway, Vercel, etc.):
-
-1. Set environment variables in your hosting platform's dashboard
-2. Never commit production secrets to the repository
-3. Use platform-specific secret management (e.g., Railway Secrets, Vercel Environment Variables)
-4. Enable HTTPS/TLS for all connections
-5. Use strong, randomly generated secrets
-
-### Quick Setup Checklist
-
-- [ ] PostgreSQL installed and running
-- [ ] Database created (`career_bridge`)
-- [ ] `backend/.env` file created with required variables
-- [ ] `JWT_SECRET` generated (32+ characters)
-- [ ] `frontend/.env.local` created (optional, uses defaults)
-- [ ] OAuth credentials configured (optional)
-- [ ] AI API keys added (optional, for enhanced features)
-
-> **💡 Tip:** Start with required variables only. You can add OAuth and AI keys later to enable additional features.
-
-## 🤖 Automation Scripts
-
-The project includes automation scripts for easy building and running:
-
-### Windows (PowerShell)
-```powershell
-# Quick start - install everything and setup database
-.\make.ps1 quickstart
-
-# Start development servers
-.\make.ps1 dev
-
-# Build for production
-.\make.ps1 build
-
-# Run tests
-.\make.ps1 test
-
-# View all commands
-.\make.ps1 help
-```
-
-### Windows (Batch)
-```cmd
-make.bat dev          # Start development
-make.bat build        # Build production
-make.bat help         # Show help
-```
-
-### Linux/Mac (Makefile)
-```bash
-# Quick start
-make quickstart
-
-# Start development
-make dev
-
-# Build production
-make build
-
-# Run tests
-make test
-
-# View all commands
-make help
-```
-
-### Available Commands
-- `install` - Install all dependencies (Rust + Node.js)
-- `quickstart` - Complete setup (install + database)
-- `dev` - Start both servers in development mode
-- `build` - Build for production
-- `test` - Run all tests
-- `lint` - Run code linters
-- `clean` - Clean build artifacts
-- `db-setup` - Create and initialize database
-- `db-seed` - Populate with sample data
-- `db-reset` - Reset database completely
-- `check` - Verify all prerequisites installed
-
-See `make.ps1` or `Makefile` for the complete list of commands.
 
 ## 📁 Project Structure
 
