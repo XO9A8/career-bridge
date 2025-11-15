@@ -1,43 +1,45 @@
-# render.yaml
 databases:
-  - name: career-bridge-db
-    databaseName: career_bridge
-    user: career_bridge_user
-    plan: free # optional, defaults to starter
+  - name: careerbridge-postgres
+    plan: starter
+    databaseName: careerbridge
+    user: careerbridge_user
+    ipAllowList: []
 
 services:
   - type: web
-    name: career-bridge-backend
+    name: careerbridge-backend
     env: rust
+    plan: starter
+    region: oregon
     rootDir: backend
-    buildCommand: "cargo build --release --all-features"
-    startCommand: "sh -c 'cargo sqlx migrate run && ./target/release/backend'"
+    buildCommand: cargo build --release
+    startCommand: ./target/release/backend
+    autoDeploy: true
+    healthCheckPath: /
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: career-bridge-db
+          name: careerbridge-postgres
           property: connectionString
-      - key: RUST_LOG
-        value: info
       - key: RUST_ENV
         value: production
       - key: JWT_SECRET
-        generateValue: true
-      - key: GOOGLE_CLIENT_ID
-        value: ""
-      - key: GOOGLE_CLIENT_SECRET
-        value: ""
-      - key: GITHUB_CLIENT_ID
-        value: ""
-      - key: GITHUB_CLIENT_SECRET
-        value: ""
+        sync: false
       - key: FRONTEND_URL
-        value: "" # e.g., https://your-frontend-app.onrender.com
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_REDIRECT_URI
+        sync: false
       - key: GEMINI_API_KEY
-        value: ""
+        sync: false
       - key: GROQ_API_KEY
-        value: ""
-      - key: YOUTUBE_API_KEY
-        value: ""
-      - key: RENDER_EXTERNAL_URL
-        value: ""
+        sync: false
