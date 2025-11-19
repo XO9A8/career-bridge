@@ -107,7 +107,6 @@ export default function SkillGapPage() {
         handleAnalyze(decodedRole)
       }, 500)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   return (
@@ -232,7 +231,9 @@ export default function SkillGapPage() {
                   className="h-3"
                 />
                 <p className="text-sm text-muted-foreground mt-3">
-                  {analysis.match_percentage >= 70 
+                  {analysis.required_skills.length === 0 
+                    ? "⚠️ We couldn't find enough data for this role to calculate a score."
+                    : analysis.match_percentage >= 70 
                     ? "🎉 Great match! You're well-prepared for this role."
                     : analysis.match_percentage >= 40
                     ? "📈 Good progress! Focus on the missing skills below."
@@ -301,10 +302,15 @@ export default function SkillGapPage() {
                         </Badge>
                       ))}
                     </div>
-                  ) : (
+                  ) : analysis.required_skills.length > 0 ? (
                     <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Perfect match! You have all required skills.</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>No data found for this role. Try a different job title.</span>
                     </div>
                   )}
                 </CardContent>

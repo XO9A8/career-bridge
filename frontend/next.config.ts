@@ -50,10 +50,7 @@ const nextConfig: NextConfig = {
     },
   },
   
-  // Optimize production builds
-  swcMinify: true,
-  
-  // Webpack optimizations
+  // Webpack optimizations (for production builds)
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Optimize client-side bundle

@@ -74,10 +74,7 @@ pub async fn google_login(State(_state): State<AppState>) -> AppResult<Redirect>
 
     let client = BasicClient::new(
         ClientId::new(google_client_id),
-        Some(ClientSecret::new(
-            std::env::var("GOOGLE_CLIENT_SECRET")
-                .map_err(|_| AppError::InternalServerError)?,
-        )),
+        Some(ClientSecret::new(google_client_secret)),
         AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())
             .map_err(|_| AppError::InternalServerError)?,
         Some(

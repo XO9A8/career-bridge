@@ -1316,19 +1316,25 @@ pub async fn update_roadmap_progress(
     let mut update_fields = Vec::new();
     let mut query = String::from("UPDATE career_roadmaps SET updated_at = CURRENT_TIMESTAMP");
     
+    // Parameter index starts at 3 because $1 is roadmap_id and $2 is user_id
+    let mut param_index = 3;
+    
     if let Some(progress) = progress_percentage {
         if progress < 0 || progress > 100 {
             return Err(AppError::ValidationError("Progress percentage must be between 0 and 100".to_string()));
         }
+        // We inject the integer directly since it's safe and simplifies binding indices
         update_fields.push(format!(" progress_percentage = {}", progress));
     }
     
     if completed_phases.is_some() {
-        update_fields.push(" completed_phases = $3".to_string());
+        update_fields.push(format!(" completed_phases = ${}", param_index));
+        param_index += 1;
     }
     
     if notes.is_some() {
-        update_fields.push(" notes = $4".to_string());
+        update_fields.push(format!(" notes = ${}", param_index));
+        // param_index += 1; // Last parameter, increment not needed
     }
 
     if !update_fields.is_empty() {
@@ -1338,43 +1344,20 @@ pub async fn update_roadmap_progress(
 
     query.push_str(" WHERE id = $1 AND user_id = $2 RETURNING id");
 
-    // Execute update
-    let result = if let Some(phases) = completed_phases {
-        if let Some(note_text) = notes {
-            sqlx::query_scalar::<_, i32>(&query)
-                .bind(roadmap_id)
-                .bind(auth_user.user_id)
-                .bind(&phases)
-                .bind(note_text)
-                .fetch_optional(&state.db_pool)
-                .await?
-        } else {
-            let query_no_notes = query.replace(", notes = $4", "");
-            sqlx::query_scalar::<_, i32>(&query_no_notes)
-                .bind(roadmap_id)
-                .bind(auth_user.user_id)
-                .bind(&phases)
-                .fetch_optional(&state.db_pool)
-                .await?
-        }
-    } else if let Some(note_text) = notes {
-        let query_no_phases = query.replace(", completed_phases = $3", "");
-        sqlx::query_scalar::<_, i32>(&query_no_phases)
-            .bind(roadmap_id)
-            .bind(auth_user.user_id)
-            .bind(note_text)
-            .fetch_optional(&state.db_pool)
-            .await?
-    } else {
-        // Only progress percentage
-        let simple_query = "UPDATE career_roadmaps SET progress_percentage = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2 RETURNING id";
-        sqlx::query_scalar::<_, i32>(simple_query)
-            .bind(roadmap_id)
-            .bind(auth_user.user_id)
-            .bind(progress_percentage.unwrap_or(0))
-            .fetch_optional(&state.db_pool)
-            .await?
-    };
+    // Execute update with dynamic binding
+    let mut query_builder = sqlx::query_scalar::<_, i32>(&query)
+        .bind(roadmap_id)
+        .bind(auth_user.user_id);
+        
+    if let Some(phases) = completed_phases {
+        query_builder = query_builder.bind(phases);
+    }
+    
+    if let Some(note_text) = notes {
+        query_builder = query_builder.bind(note_text);
+    }
+    
+    let result = query_builder.fetch_optional(&state.db_pool).await?;
 
     match result {
         Some(_) => Ok(Json(json!({

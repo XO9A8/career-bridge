@@ -276,7 +276,7 @@ export default function HeroIllustration() {
             fill="none"
           />
           <ellipse cx="140" cy="395" rx="8" ry="12" fill={isDark ? "#059669" : "#6EE7B7"} />
-          <ellipse cx="172" cy="395" rx="8" ry="12" fill={isDark ? "#059669" :="#6EE7B7"} />
+          <ellipse cx="172" cy="395" rx="8" ry="12" fill={isDark ? "#059669" : "#6EE7B7"} />
         </motion.g>
 
         {/* Coffee cup */}

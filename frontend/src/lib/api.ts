@@ -340,6 +340,24 @@ export const profileApi = {
 
     return await response.json();
   },
+
+  // Generate CV PDF
+  generateCV: async (): Promise<Blob> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/profile/generate-cv`, {
+      method: 'GET',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate CV');
+    }
+
+    return await response.blob();
+  },
 };
 
 // Jobs APIs
@@ -873,6 +891,33 @@ export const aiApi = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to get suggestions');
+    }
+
+    return await response.json();
+  },
+
+  // Generic AI Action
+  processAction: async (
+    action: 'extract_skills' | 'generate_roadmap' | 'ask_question' | 'generate_content',
+    input: string,
+    parameters?: any,
+    provider: 'gemini' | 'groq' = 'gemini'
+  ): Promise<any> => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/ai/action`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        action,
+        input,
+        parameters,
+        provider
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to process AI action');
     }
 
     return await response.json();

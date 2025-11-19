@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-require-imports */
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = componentTagger;
@@ -427,7 +427,7 @@ function componentTagger(src, map) {
                     orchidsId += `@${mapContext.arrayName}`;
                 }
                 // 🔍 Append referenced variable locations for simple identifier references in props
-                (_a = node.attributes) === null || _a === void 0 ? void 0 : _a.forEach((attr) => {
+                void ((_a = node.attributes) === null || _a === void 0 ? void 0 : _a.forEach((attr) => {
                     var _a, _b;
                     if (attr.type === 'JSXAttribute' &&
                         ((_a = attr.value) === null || _a === void 0 ? void 0 : _a.type) === 'JSXExpressionContainer' &&
@@ -438,7 +438,7 @@ function componentTagger(src, map) {
                             orchidsId += `@${refName}`;
                         }
                     }
-                });
+                }));
                 // 📍 If inside a map context and we have an index variable, inject data-map-index
                 if (mapContext === null || mapContext === void 0 ? void 0 : mapContext.indexVarName) {
                     ms.appendLeft(node.name.end, ` data-map-index={${mapContext.indexVarName}}`);

@@ -184,21 +184,7 @@ export default function ProfilePage() {
         return
       }
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000/api';
-      const response = await fetch(`${API_BASE_URL}/profile/generate-cv`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to generate CV')
-      }
-
-      // Get the PDF blob
-      const blob = await response.blob()
+      const blob = await profileApi.generateCV()
 
       // Create a download link
       const url = window.URL.createObjectURL(blob)

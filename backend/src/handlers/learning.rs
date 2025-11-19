@@ -160,7 +160,6 @@ pub async fn analyze_skill_gap(
     .await?;
 
     // Find jobs matching the target role
-    // Find learning resources that teach skills the user doesn't have yet
     let jobs = sqlx::query_as!(
         Job,
         r#"
