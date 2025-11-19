@@ -42,8 +42,6 @@ const nextConfig: NextConfig = {
       '@react-three/fiber',
       '@react-three/drei',
     ],
-    // Enable optimized CSS loading
-    optimizeCss: true,
     // Reduce unnecessary re-renders
     serverActions: {
       bodySizeLimit: '2mb',
