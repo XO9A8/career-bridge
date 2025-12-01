@@ -1,0 +1,48 @@
+services:
+  # 1. The Database
+  db:
+    image: postgres:15-alpine
+    container_name: hackathon-db
+    restart: always
+    environment:
+      POSTGRES_USER: just4fn
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: database_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/seed_data.sql:/docker-entrypoint-initdb.d/02-seed_data.sql
+  # 2. The Backend (Rust)
+  backend:
+    build: ./backend # <--- Make sure this matches your Rust folder name
+    container_name: hackathon-backend
+    restart: always
+    ports:
+      - "8080:3000" # Host Port : Container Port
+    env_file:
+      - ./backend/.env
+    environment:
+      # CRITICAL: We use the service name 'db' to connect, not 'localhost'
+      DATABASE_URL: postgres://just4fn:123@db:5432/database_db
+    depends_on:
+      - db
+
+  # 3. The Frontend (Next.js)
+  frontend:
+    build: ./frontend # <--- Make sure this matches your Next.js folder name
+    container_name: hackathon-frontend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      # For Server-Side Rendering (inside the container)
+      INTERNAL_API_URL: http://backend:3000/api
+      # For Client-Side Rendering (browser)
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
